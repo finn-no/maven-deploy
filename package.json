@@ -1,0 +1,22 @@
+{
+  "name": "maven-deploy",
+  "version": "0.0.0",
+  "description": "A simple NodeJS module to create a war/jar package and install to a local Maven repository or deploy to a remote one",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "maven",
+    "deploy"
+  ],
+  "author": "FINN.no AS",
+  "license": "MIT",
+  "dependencies": {
+    "util-extend": "1.x",
+    "fs-walk": "0.0.x",
+    "define-options": "0.1.x",
+    "jszip": "2.x",
+    "semver": "2.x"
+  }
+}
