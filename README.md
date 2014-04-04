@@ -45,7 +45,7 @@ Usage: `maven.package( [callback] )`
 
 Example:
 
-    var maven = require('maven');
+    var maven = require('maven-deploy');
     maven.config(config);
     maven.package();
 
@@ -55,7 +55,7 @@ Usage: `maven.install( [callback] )`
 
 Example:
 
-    var maven = require('maven');
+    var maven = require('maven-deploy');
     maven.config(config);
     maven.install();
 
@@ -64,12 +64,12 @@ Runs package first, then deploys the package to the specified Maven repository.
 Usage: `maven.deploy( repositoryId, [snapshot = false], [callback])`
 
 ### Example: deploy to snapshot repo
-    var maven = require('maven');
+    var maven = require('maven-deploy');
     maven.config(config);
     maven.deploy('example-internal-snapshot', true);
 
 ### Example: deploy to release repo
 
-    var maven = require('maven');
+    var maven = require('maven-deploy');
     maven.config(config);
     maven.deploy('example-internal-release');
