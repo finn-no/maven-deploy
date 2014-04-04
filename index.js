@@ -70,12 +70,13 @@ function mvnArgs (repoId, isSnapshot) {
     }, []);
 }
 
-function check (err) {
+function check (err, stdout, stderr) {
     if (err) {
         if (err.code === 'ENOENT') {
             console.error(cmd + ' command not found. Do you have it in your PATH?');
         } else {
-            console.error(err);
+            console.error(stdout);
+            console.error(stderr);
         }
         process.exit(1);
     }
@@ -84,7 +85,7 @@ function check (err) {
 function command (cmd, done) {
     console.log('Executing command: ' + cmd);
     exec(cmd, function (err, stdout, stderr) {
-        check(err);
+        check(err, stdout, stderr);
         if (done) { done(err, stdout, stderr); }
     });
 }
