@@ -7,12 +7,12 @@ Project name and version is extracted from package.json and used as artifactId a
 litteral with other Maven related config. Values from package.json can be used by adding curly-braces around the key.
 Example `{finalName: "{name}-{version}"}`.
 
-The package is created from the `{buildDir}/{finalName}` folder. So you need to make sure that the files you want in the
-package is put there before packaging. The default is `target/your-project-name`.
+The package is created from the `{buildDir}/` folder. So you need to make sure that the files you want in the
+package is put there before packaging. The default is `dist/`. The package file will be output in the same folder.
 
     var config = {
         "groupId"      : "com.example",    // required - the Maven group id.
-        "buildDir"     : "target",         // project build directory.
+        "buildDir"     : "dist",           // project build directory.
         "finalName"    : "{name}",         // the final name of the file created when the built project is packaged.
         "type"         : "war",            // type of package. "war" or "jar" supported.
         "repositories" : [                 // array of repositories, each with id and url to a Maven repository.
@@ -34,13 +34,9 @@ It might be useful to store the config as a separate json-file, so you can re-us
 ## Contributing
 If you have ideas how to improve this (or other things), please contribute :D
 
-Haven't really settled on if it's a good idea to follow the Maven-way with target/project-name. Using a config with a
-list of globs to find resources to add to the package could be more node-ish, but then you'd need some sort of mapping
-if you want a different layout.
-
 ## Package war/jar
-It expects output from the project to be in target/{finalName} directory. It zips the content and outputs it to
-target/{finalName}.{type}
+It expects output from the project to be in dist/ directory. It zips the content and outputs it to
+dist/{finalName}.{type}
 Usage: `maven.package( [callback] )`
 
 Example:

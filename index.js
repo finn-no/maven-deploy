@@ -8,7 +8,7 @@ var defineOpts = require('define-options');
 var semver = require('semver');
 
 var config = {
-        buildDir: 'target',
+        buildDir: 'dist',
         finalName: '{name}',
         type: 'war'
     },
@@ -103,15 +103,14 @@ var maven = {
 
     package: function (done) {
         var war = new JSZip();
-        var fullDir = path.join(config.buildDir, pkg.name);
 
-        walk.walkSync(fullDir, function (base, file, stat) {
-            if (stat.isDirectory()) {
+        walk.walkSync(config.buildDir, function (base, file, stat) {
+            if (stat.isDirectory() || file.indexOf(config.finalName) >= 0) {
                 return;
             }
             var filePath = path.join(base, file);
             var data = fs.readFileSync(filePath, {encoding: 'utf-8'});
-            war.file(path.relative(fullDir, filePath), data);
+            war.file(path.relative(config.buildDir, filePath), data);
         });
 
         var buffer = war.generate({type:"nodebuffer", compression:'DEFLATE'});
