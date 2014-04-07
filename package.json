@@ -1,7 +1,7 @@
 {
   "name": "maven-deploy",
   "version": "0.0.1",
-  "description": "A simple NodeJS module to create a war/jar package and install to a local Maven repository or deploy to a remote one",
+  "description": "A simple Node.js module to create a war-/jar-package and install/deploy to a local/remote Maven repository",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

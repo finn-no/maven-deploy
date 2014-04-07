@@ -1,7 +1,7 @@
 # maven-deploy
 
-A simple NodeJS module to create a war/jar package and install to a local Maven repository or deploy to a remote one.
-It uses `mvn` to do the actual deployment, so you need maven installed locally.
+A simple Node.js module to create a war-/jar-package and install/deploy to a local/remote Maven repository. It uses
+`mvn` to do the actual deployment, so you need maven installed locally.
 
 Project name and version is extracted from package.json and used as artifactId and maven version. Supply an object
 litteral with other Maven related config. Values from package.json can be used by adding curly-braces around the key.
