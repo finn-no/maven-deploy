@@ -10,7 +10,16 @@
     "maven",
     "deploy"
   ],
+  "homepage": "https://github.com/finn-no/maven-deploy",
+  "bugs": "https://github.com/finn-no/maven-deploy/issues",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:finn-no/maven-deploy.git"
+  },
   "author": "FINN.no AS",
+  "contributors": [
+    "Gregers Rygg <gregers@finn.no>"
+  ],
   "license": "MIT",
   "dependencies": {
     "util-extend": "1.x",
