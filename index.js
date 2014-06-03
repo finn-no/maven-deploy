@@ -10,14 +10,16 @@ var semver = require('semver');
 var config = {
         buildDir: 'dist',
         finalName: '{name}',
-        type: 'war'
+        type: 'war',
+        fileEncoding: 'utf-8'
     },
     validateConfig = defineOpts({
         groupId       : 'string   - the Maven group id.',
         buildDir      : '?|string - build directory. default "' + config.buildDir + '".',
-        finalName     : '?|string - the final name of the file created when the built project is packaged. default "' +
+        finalName     : '?|stringde - the final name of the file created when the built project is packaged. default "' +
                         config.finalName + '"',
-        type          : '?|string - "jar" or "war". default "' + config.type + '".'
+        type          : '?|string - "jar" or "war". default "' + config.type + '".',
+        fileEncoding  : '?|string - valid file encoding. default "' + config.fileEncoding + '"'
     }),
     validateRepos = defineOpts({
         repositories  : 'object[] - array of repositories, each with id and url to a Maven repository'
@@ -26,7 +28,7 @@ var config = {
         id            : 'string   - the Maven repository id',
         url           : 'string   - URL to the Maven repository'
     }),
-    pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
+    pkg = JSON.parse(fs.readFileSync('./package.json', config.fileEncoding));
 
 function filterConfig () {
     Object.keys(config).forEach(function (key) {
@@ -109,7 +111,7 @@ var maven = {
                 return;
             }
             var filePath = path.join(base, file);
-            var data = fs.readFileSync(filePath, {encoding: 'utf-8'});
+            var data = fs.readFileSync(filePath, {'encoding': config.fileEncoding});
             war.file(path.relative(config.buildDir, filePath), data);
         });
 
