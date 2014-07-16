@@ -16,7 +16,7 @@ var config = {
     validateConfig = defineOpts({
         groupId       : 'string   - the Maven group id.',
         buildDir      : '?|string - build directory. default "' + config.buildDir + '".',
-        finalName     : '?|stringde - the final name of the file created when the built project is packaged. default "' +
+        finalName     : '?|string - the final name of the file created when the built project is packaged. default "' +
                         config.finalName + '"',
         type          : '?|string - "jar" or "war". default "' + config.type + '".',
         fileEncoding  : '?|string - valid file encoding. default "' + config.fileEncoding + '"'
