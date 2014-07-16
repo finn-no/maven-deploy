@@ -107,7 +107,7 @@ var maven = {
         var war = new JSZip();
 
         walk.walkSync(config.buildDir, function (base, file, stat) {
-            if (stat.isDirectory() || file.indexOf(config.finalName) >= 0) {
+            if (stat.isDirectory() || file.indexOf(config.finalName + '.' + config.type) === 0) {
                 return;
             }
             var filePath = path.join(base, file);
