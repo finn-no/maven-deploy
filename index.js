@@ -43,7 +43,7 @@ function filterConfig () {
 }
 
 function archivePath () {
-    return config.finalName + '.' + config.type;
+    return path.join(config.buildDir, config.finalName + '.' + config.type);
 }
 
 function mvnArgs (repoId, isSnapshot) {
@@ -123,7 +123,7 @@ var maven = {
         archive.pipe(output);
 
         archive.bulk([
-            { expand: true, cwd: config.buildDir, src: ['**'] }
+            { expand: true, cwd: config.buildDir, src: ['**', '!' + config.finalName + '.' + config.type] }
         ]);
 
         archive.finalize();
