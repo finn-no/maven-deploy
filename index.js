@@ -47,6 +47,7 @@ function archivePath () {
 }
 
 function mvnArgs (repoId, isSnapshot) {
+    var pkg = JSON.parse(fs.readFileSync('./package.json', config.fileEncoding));
     var args = {
         packaging    : config.type,
         file         : archivePath(),
