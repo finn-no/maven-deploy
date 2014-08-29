@@ -1,11 +1,11 @@
 var fs = require('fs');
 var path = require('path');
 var walk = require('fs-walk');
-var JSZip = require('jszip');
 var extend = require('util-extend');
 var exec = require('child_process').exec;
 var defineOpts = require('define-options');
 var semver = require('semver');
+var archiver = require('archiver');
 
 var config = {
         buildDir: 'dist',
@@ -42,14 +42,15 @@ function filterConfig () {
     });
 }
 
-function warPath () {
+function archivePath () {
     return path.join(config.buildDir, config.finalName + '.' + config.type);
 }
 
 function mvnArgs (repoId, isSnapshot) {
+    var pkg = JSON.parse(fs.readFileSync('./package.json', config.fileEncoding));
     var args = {
         packaging    : config.type,
-        file         : warPath(),
+        file         : archivePath(),
         groupId      : config.groupId,
         artifactId   : pkg.name,
         version      : pkg.version
@@ -104,19 +105,30 @@ var maven = {
     },
 
     package: function (done) {
-        var war = new JSZip();
 
-        walk.walkSync(config.buildDir, function (base, file, stat) {
-            if (stat.isDirectory() || file.indexOf(config.finalName + '.' + config.type) === 0) {
-                return;
-            }
-            var filePath = path.join(base, file);
-            var data = fs.readFileSync(filePath, {'encoding': config.fileEncoding});
-            war.file(path.relative(config.buildDir, filePath), data);
-        });
+        var output = fs.createWriteStream(archivePath());
 
-        var buffer = war.generate({type:"nodebuffer", compression:'DEFLATE'});
-        fs.writeFileSync(warPath(), buffer);
+        var archive;
+        switch(config.type) {
+            case 'war':
+            case 'jar':
+                archive = archiver('zip');
+                break;
+            case 'tar.gz':
+                archive = archiver('tar', { gzip: true });
+                break;
+            default:
+                archive = archiver(config.type);
+        };
+
+        archive.pipe(output);
+
+        archive.bulk([
+            { expand: true, cwd: config.buildDir, src: ['**', '!' + config.finalName + '.' + config.type] }
+        ]);
+
+        archive.finalize();
+
         if (done) { done(); }
     },
 
