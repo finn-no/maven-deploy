@@ -81,7 +81,7 @@ function check (err, stdout, stderr) {
             console.error(stdout);
             console.error(stderr);
         }
-        process.exit(1);
+        exit();
     }
 }
 
@@ -97,6 +97,10 @@ function mvn (args, repoId, isSnapshot, done) {
     command('mvn ' + args.concat(mvnArgs(repoId, isSnapshot)).join(' '), done);
 }
 
+function exit(){
+    process.exit(1);
+}
+
 var maven = {
     config: function (c) {
         validateConfig(c);
@@ -107,29 +111,28 @@ var maven = {
     package: function (done) {
 
         var output = fs.createWriteStream(archivePath());
+        output.on('error', function(err){
+            console.error('Could not create archive an path ' + archivePath(), err);
+            exit();
+        });
+        output.on('open', function(){
 
-        var archive;
-        switch(config.type) {
-            case 'war':
-            case 'jar':
+            var archive;
+            if(config.type === 'war' || config.type == 'jar') {
                 archive = archiver('zip');
-                break;
-            case 'tar.gz':
+            } else if (config.type === 'tar.gz') {
                 archive = archiver('tar', { gzip: true });
-                break;
-            default:
+            } else {
                 archive = archiver(config.type);
-        };
+            };
 
-        archive.pipe(output);
-
-        archive.bulk([
-            { expand: true, cwd: config.buildDir, src: ['**', '!' + config.finalName + '.' + config.type] }
-        ]);
-
-        archive.finalize();
-
-        if (done) { done(); }
+            archive.pipe(output);
+            archive.bulk([
+                { expand: true, cwd: config.buildDir, src: ['**', '!' + config.finalName + '.' + config.type] }
+            ]);
+            archive.finalize();
+            if (done) { done(); }
+        });
     },
 
     install: function (done) {
