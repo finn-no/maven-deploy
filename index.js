@@ -30,6 +30,7 @@ var config = {
     pkg = JSON.parse(fs.readFileSync('./package.json', config.fileEncoding));
 
 function filterConfig () {
+    // replace {key} in config with value from package.json
     Object.keys(config).forEach(function (key) {
         var value = config[key];
         if (typeof value != 'string') { return; }
@@ -46,7 +47,6 @@ function archivePath () {
 }
 
 function mvnArgs (repoId, isSnapshot) {
-    var pkg = JSON.parse(fs.readFileSync('./package.json', config.fileEncoding));
     var args = {
         packaging    : config.type,
         file         : archivePath(),
@@ -115,16 +115,16 @@ var maven = {
             exit();
         });
         output.on('open', function(){
+            var archive, opts, type = config.type;
 
-            var archive;
-            if(config.type === 'war' || config.type == 'jar') {
-                archive = archiver('zip');
-            } else if (config.type === 'tar.gz') {
-                archive = archiver('tar', { gzip: true });
-            } else {
-                archive = archiver(config.type);
+            if (type === 'war' || type === 'jar') {
+                type = 'zip';
+            } else if (type === 'tar.gz') {
+                type = 'tar';
+                opts = {gzip: true};
             }
 
+            archive = archiver(type, opts);
             archive.pipe(output);
             archive.bulk([
                 { expand: true, cwd: config.buildDir, src: ['**', '!' + config.finalName + '.' + config.type] }
