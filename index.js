@@ -7,28 +7,37 @@ var exec = require('child_process').exec;
 var defineOpts = require('define-options');
 var semver = require('semver');
 
-var config = {
+var config, pkg, validateConfig, validateRepos, validateRepo;
+init();
+validateConfig = defineOpts({
+    groupId       : 'string   - the Maven group id.',
+    buildDir      : '?|string - build directory. default "' + config.buildDir + '".',
+    finalName     : '?|string - the final name of the file created when the built project is packaged. default "' +
+                    config.finalName + '"',
+    type          : '?|string - "jar" or "war". default "' + config.type + '".',
+    fileEncoding  : '?|string - valid file encoding. default "' + config.fileEncoding + '"'
+}),
+validateRepos = defineOpts({
+    repositories  : 'object[] - array of repositories, each with id and url to a Maven repository'
+}),
+validateRepo = defineOpts({
+    id            : 'string   - the Maven repository id',
+    url           : 'string   - URL to the Maven repository'
+});
+
+function init () {
+    config = {
         buildDir: 'dist',
         finalName: '{name}',
         type: 'war',
         fileEncoding: 'utf-8'
     },
-    validateConfig = defineOpts({
-        groupId       : 'string   - the Maven group id.',
-        buildDir      : '?|string - build directory. default "' + config.buildDir + '".',
-        finalName     : '?|string - the final name of the file created when the built project is packaged. default "' +
-                        config.finalName + '"',
-        type          : '?|string - "jar" or "war". default "' + config.type + '".',
-        fileEncoding  : '?|string - valid file encoding. default "' + config.fileEncoding + '"'
-    }),
-    validateRepos = defineOpts({
-        repositories  : 'object[] - array of repositories, each with id and url to a Maven repository'
-    }),
-    validateRepo = defineOpts({
-        id            : 'string   - the Maven repository id',
-        url           : 'string   - URL to the Maven repository'
-    }),
-    pkg = JSON.parse(fs.readFileSync('./package.json', config.fileEncoding));
+    pkg = readPackageJSON();
+}
+
+function readPackageJSON () {
+    return JSON.parse(fs.readFileSync('./package.json', config.fileEncoding));
+}
 
 function filterConfig () {
     // replace {key} in config with value from package.json
@@ -121,7 +130,8 @@ var maven = {
         });
 
         var buffer = archive.generate({type:'nodebuffer', compression:'DEFLATE'});
-        fs.writeFileSync(archivePath(), buffer);
+        var arPath = archivePath();
+        fs.writeFileSync(arPath, buffer);
 
         if (done) { done(); }
     },
@@ -134,10 +144,19 @@ var maven = {
     deploy: function (repoId, isSnapshot, done) {
         if (typeof isSnapshot == 'function') { done = isSnapshot; isSnapshot = false; }
         validateRepos(config);
+        if (config.repositories.length == 0) {
+            throw new Error('Maven repositories have to include at least one repository with ‘id’ and ‘url’.');
+        }
         config.repositories.forEach(validateRepo);
         this.package();
         mvn(['deploy:deploy-file'], repoId, isSnapshot, done);
-    }
+    },
+
+    // only for tests - do not use externally
+    _init: init,
+    _getPkg: function () { return pkg; },
+    _setPkg: function (_pkg) { pkg = _pkg; },
+    _mockExec: function (mock) { exec = mock; }
 };
 
 module.exports = maven;

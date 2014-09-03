@@ -27,5 +27,9 @@
     "jszip": "2.x",
     "semver": "2.x",
     "util-extend": "1.x"
+  },
+  "devDependencies": {
+    "mocha": "^1.21.4",
+    "shelljs": "^0.3.0"
   }
 }
