@@ -1,6 +1,6 @@
 {
   "name": "maven-deploy",
-  "version": "0.0.3",
+  "version": "0.0.2",
   "description": "A simple Node.js module to create a war-/jar-package and install/deploy to a local/remote Maven repository",
   "main": "index.js",
   "scripts": {
@@ -22,10 +22,10 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "util-extend": "1.x",
-    "fs-walk": "0.0.x",
     "define-options": "0.1.x",
+    "fs-walk": "0.0.x",
+    "jszip": "2.x",
     "semver": "2.x",
-    "archiver": "0.10.x"
+    "util-extend": "1.x"
   }
 }

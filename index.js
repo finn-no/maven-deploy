@@ -1,10 +1,11 @@
 var fs = require('fs');
 var path = require('path');
+var walk = require('fs-walk');
+var JSZip = require('jszip');
 var extend = require('util-extend');
 var exec = require('child_process').exec;
 var defineOpts = require('define-options');
 var semver = require('semver');
-var archiver = require('archiver');
 
 var config = {
         buildDir: 'dist',
@@ -108,30 +109,21 @@ var maven = {
     },
 
     package: function (done) {
+        var archive = new JSZip();
 
-        var output = fs.createWriteStream(archivePath());
-        output.on('error', function(err){
-            console.error('Could not create archive an path ' + archivePath(), err);
-            exit();
-        });
-        output.on('open', function(){
-            var archive, opts, type = config.type;
-
-            if (type === 'war' || type === 'jar') {
-                type = 'zip';
-            } else if (type === 'tar.gz') {
-                type = 'tar';
-                opts = {gzip: true};
+        walk.walkSync(config.buildDir, function (base, file, stat) {
+            if (stat.isDirectory() || file.indexOf(config.finalName + '.' + config.type) === 0) {
+                return;
             }
-
-            archive = archiver(type, opts);
-            archive.pipe(output);
-            archive.bulk([
-                { expand: true, cwd: config.buildDir, src: ['**', '!' + config.finalName + '.' + config.type] }
-            ]);
-            archive.finalize();
-            if (done) { done(); }
+            var filePath = path.join(base, file);
+            var data = fs.readFileSync(filePath, {'encoding': config.fileEncoding});
+            archive.file(path.relative(config.buildDir, filePath), data);
         });
+
+        var buffer = archive.generate({type:'nodebuffer', compression:'DEFLATE'});
+        fs.writeFileSync(archivePath(), buffer);
+
+        if (done) { done(); }
     },
 
     install: function (done) {
