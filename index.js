@@ -1,6 +1,5 @@
 var fs = require('fs');
 var path = require('path');
-var walk = require('fs-walk');
 var extend = require('util-extend');
 var exec = require('child_process').exec;
 var defineOpts = require('define-options');
@@ -73,7 +72,7 @@ function mvnArgs (repoId, isSnapshot) {
     }, []);
 }
 
-function check (err, stdout, stderr) {
+function check (cmd, err, stdout, stderr) {
     if (err) {
         if (err.code === 'ENOENT') {
             console.error(cmd + ' command not found. Do you have it in your PATH?');
@@ -88,7 +87,7 @@ function check (err, stdout, stderr) {
 function command (cmd, done) {
     console.log('Executing command: ' + cmd);
     exec(cmd, function (err, stdout, stderr) {
-        check(err, stdout, stderr);
+        check(cmd, err, stdout, stderr);
         if (done) { done(err, stdout, stderr); }
     });
 }
@@ -124,7 +123,7 @@ var maven = {
                 archive = archiver('tar', { gzip: true });
             } else {
                 archive = archiver(config.type);
-            };
+            }
 
             archive.pipe(output);
             archive.bulk([
