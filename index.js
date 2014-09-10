@@ -11,6 +11,7 @@ var config, pkg, validateConfig, validateRepos, validateRepo;
 init();
 validateConfig = defineOpts({
     groupId       : 'string   - the Maven group id.',
+    artifactId    : '?|string - the Maven artifact id. default "' + config.artifactId + '".',
     buildDir      : '?|string - build directory. default "' + config.buildDir + '".',
     finalName     : '?|string - the final name of the file created when the built project is packaged. default "' +
                     config.finalName + '"',
@@ -27,6 +28,7 @@ validateRepo = defineOpts({
 
 function init () {
     config = {
+        artifactId: '{name}',
         buildDir: 'dist',
         finalName: '{name}',
         type: 'war',
@@ -61,7 +63,7 @@ function mvnArgs (repoId, isSnapshot) {
         packaging    : config.type,
         file         : archivePath(),
         groupId      : config.groupId,
-        artifactId   : pkg.name,
+        artifactId   : config.artifactId,
         version      : pkg.version
     };
     if (repoId) {
@@ -103,7 +105,7 @@ function command (cmd, done) {
 }
 
 function mvn (args, repoId, isSnapshot, done) {
-    command('mvn ' + args.concat(mvnArgs(repoId, isSnapshot)).join(' '), done);
+    command('mvn -B ' + args.concat(mvnArgs(repoId, isSnapshot)).join(' '), done);
 }
 
 function exit(){
