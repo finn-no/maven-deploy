@@ -26,7 +26,8 @@
     "fs-walk": "0.0.x",
     "jszip": "2.x",
     "semver": "2.x",
-    "util-extend": "1.x"
+    "util-extend": "1.x",
+    "isbinaryfile": "2.0.1"
   },
   "devDependencies": {
     "mocha": "^1.21.4",

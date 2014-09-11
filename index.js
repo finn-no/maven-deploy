@@ -6,6 +6,7 @@ var extend = require('util-extend');
 var exec = require('child_process').exec;
 var defineOpts = require('define-options');
 var semver = require('semver');
+var isBinaryFileSync = require("isbinaryfile");
 
 var config, pkg, validateConfig, validateRepos, validateRepo;
 init();
@@ -127,7 +128,14 @@ var maven = {
                 return;
             }
             var filePath = path.join(base, file);
-            var data = fs.readFileSync(filePath, {'encoding': config.fileEncoding});
+
+            var data;
+            if(isBinaryFileSync(filePath)) {
+                data = fs.readFileSync(filePath);
+            } else {
+                data = fs.readFileSync(filePath, {'encoding': config.fileEncoding});
+            }
+
             archive.file(path.relative(config.buildDir, filePath), data);
         });
 
