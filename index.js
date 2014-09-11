@@ -30,31 +30,19 @@ validateRepo = defineOpts({
 });
 
 function init () {
+    var defaultFileEncoding = 'utf-8';
+    pkg = readPackageJSON(defaultFileEncoding);
     config = {
-        artifactId: '{name}',
         buildDir: 'dist',
-        finalName: '{name}',
+        artifactId   : pkg.name,
+        finalName: pkg.name,
         type: 'war',
-        fileEncoding: 'utf-8'
+        fileEncoding: defaultFileEncoding
     };
-    pkg = readPackageJSON();
 }
 
-function readPackageJSON () {
-    return JSON.parse(fs.readFileSync('./package.json', config.fileEncoding));
-}
-
-function filterConfig () {
-    // replace {key} in config with value from package.json
-    Object.keys(config).forEach(function (key) {
-        var value = config[key];
-        if (typeof value != 'string') { return; }
-
-        config[key] = value.replace(/{([^}]+)}/g, function (org, key) {
-            if (pkg[key] === undefined) { return org; }
-            return pkg[key];
-        });
-    });
+function readPackageJSON (fileEncoding) {
+    return JSON.parse(fs.readFileSync('./package.json', fileEncoding));
 }
 
 function archivePath () {
@@ -119,7 +107,6 @@ var maven = {
     config: function (c) {
         validateConfig(c);
         extend(config, c);
-        filterConfig();
     },
 
     package: function (done) {
@@ -168,7 +155,9 @@ var maven = {
     _init: init,
     _getPkg: function () { return pkg; },
     _setPkg: function (_pkg) { pkg = _pkg; },
-    _mockExec: function (mock) { exec = mock; }
+    _mockExec: function (mock) { exec = mock; },
+    _getConfig: function () { return config; },
+    _setConfig: function (conf) { config = conf; }
 };
 
 module.exports = maven;
