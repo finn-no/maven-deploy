@@ -28,7 +28,7 @@
     "jszip": "2.x",
     "semver": "2.x",
     "util-extend": "1.x",
-    "isbinaryfile": "2.0.1"
+    "isbinaryfile": "2.x"
   },
   "devDependencies": {
     "jshint": "^2.5.5",
