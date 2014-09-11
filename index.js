@@ -6,7 +6,7 @@ var extend = require('util-extend');
 var exec = require('child_process').exec;
 var defineOpts = require('define-options');
 var semver = require('semver');
-var isBinaryFileSync = require("isbinaryfile");
+var isBinaryFileSync = require('isbinaryfile');
 
 var config, pkg, validateConfig, validateRepos, validateRepo;
 init();
@@ -18,10 +18,12 @@ validateConfig = defineOpts({
                     config.finalName + '"',
     type          : '?|string - "jar" or "war". default "' + config.type + '".',
     fileEncoding  : '?|string - valid file encoding. default "' + config.fileEncoding + '"'
-}),
+});
+
 validateRepos = defineOpts({
     repositories  : 'object[] - array of repositories, each with id and url to a Maven repository'
-}),
+});
+
 validateRepo = defineOpts({
     id            : 'string   - the Maven repository id',
     url           : 'string   - URL to the Maven repository'
@@ -34,7 +36,7 @@ function init () {
         finalName: '{name}',
         type: 'war',
         fileEncoding: 'utf-8'
-    },
+    };
     pkg = readPackageJSON();
 }
 
@@ -154,7 +156,7 @@ var maven = {
     deploy: function (repoId, isSnapshot, done) {
         if (typeof isSnapshot == 'function') { done = isSnapshot; isSnapshot = false; }
         validateRepos(config);
-        if (config.repositories.length == 0) {
+        if (config.repositories.length === 0) {
             throw new Error('Maven repositories have to include at least one repository with ‘id’ and ‘url’.');
         }
         config.repositories.forEach(validateRepo);

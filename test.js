@@ -1,18 +1,21 @@
+/* globals describe, it, beforeEach, afterEach */
 var assert = require('assert');
 var maven = require('./index.js');
 var shell = require('shelljs');
-var extend = require('util-extend');
+//var extend = require('util-extend');
 
 var lastCmd, cmdCallback;
+/*
 var mockExec = function (cmd, callback) {
     lastCmd = cmd;
     cmdCallback = callback;
 };
+*/
 
 const GROUP_ID = 'com.dummy',
     DUMMY_REPO = {
-        "id": "dummy-repo",
-        "url": "http://mavendummyrepo.com/dummy/"
+        'id': 'dummy-repo',
+        'url': 'http://mavendummyrepo.com/dummy/'
     },
     TEST_CONFIG = {
         groupId: GROUP_ID,

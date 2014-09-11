@@ -1,5 +1,4 @@
 {
-<<<<<<< Updated upstream
     "bitwise"       : true,
     "camelcase"     : true,
     "curly"         : true,
@@ -29,7 +28,7 @@
     "boss"          : false,
     "debug"         : false,
     "eqnull"        : true,
-    "esnext"        : false,
+    "esnext"        : true,
     "evil"          : false,
     "expr"          : false,
     "funcscope"     : false,
@@ -53,6 +52,4 @@
     "browser"       : false,
     "devel"         : false,
     "node"          : true
-=======
->>>>>>> Stashed changes
 }
