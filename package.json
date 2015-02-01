@@ -4,7 +4,7 @@
   "description": "A simple Node.js module to create a war-/jar-package and install/deploy to a local/remote Maven repository",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/jshint .jshintrc *.js",
+    "test": "./node_modules/.bin/jshint .jshintrc *.js && ./node_modules/.bin/mocha test.js",
     "prepublish": "./node_modules/.bin/jshint .jshintrc *.js"
   },
   "keywords": [

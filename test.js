@@ -54,6 +54,23 @@ describe('maven-deploy', function () {
                 });
             });
         });
+        it('should use package name for artifactId if not configured', function(){
+            maven.config({
+                groupId: 'someGroup',
+                repositories: [DUMMY_REPO]
+            });
+            assert.ok(maven._getConfig().artifactId == require('./package.json').name);
+        });
+        it('should use package name for artifactId if not configured', function(){
+            var artifactId = 'artifactId-config';
+            maven._init();
+            maven.config({
+                groupId: 'someGroup',
+                'artifactId': artifactId,
+                repositories: [DUMMY_REPO]
+            });
+            assert.ok(maven._getConfig().artifactId == artifactId);
+        });
     });
 
     describe('package', function () {
