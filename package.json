@@ -4,7 +4,8 @@
   "description": "A simple Node.js module to create a war-/jar-package and install/deploy to a local/remote Maven repository",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/jshint .jshintrc *.js",
+    "test": "mocha && npm run lint",
+    "lint": "./node_modules/.bin/jshint *.js",
     "prepublish": "./node_modules/.bin/jshint .jshintrc *.js"
   },
   "keywords": [
@@ -31,8 +32,12 @@
     "isbinaryfile": "2.x"
   },
   "devDependencies": {
+    "chai": "^1.10.0",
     "jshint": "^2.5.5",
     "mocha": "^1.21.4",
-    "shelljs": "^0.3.0"
+    "mock-fs": "^2.5.0",
+    "mockery": "^1.4.0",
+    "proxyquire": "^1.3.1",
+    "sinon": "^1.12.2"
   }
 }

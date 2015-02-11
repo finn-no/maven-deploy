@@ -1,16 +1,13 @@
 /* globals describe, it, beforeEach, afterEach */
 var assert = require('assert');
-var maven = require('./index.js');
-var shell = require('shelljs');
-//var extend = require('util-extend');
+var expect = require('chai').expect;
+var sinon = require('sinon');
+var extend = require('util-extend');
+var proxyquire = require('proxyquire');
+var fsMock = require('mock-fs');
+var maven, fs;
 
 var lastCmd, cmdCallback;
-/*
-var mockExec = function (cmd, callback) {
-    lastCmd = cmd;
-    cmdCallback = callback;
-};
-*/
 
 const GROUP_ID = 'com.dummy',
     DUMMY_REPO = {
@@ -20,30 +17,51 @@ const GROUP_ID = 'com.dummy',
     TEST_CONFIG = {
         groupId: GROUP_ID,
         repositories: [DUMMY_REPO]
+    },
+    TEST_PKG_JSON = {
+        name: 'test-pkg',
+        version: '1.0.0'
     };
 
-function createDist (buildDir) {
-    buildDir = buildDir || 'dist';
-    shell.mkdir('-p', buildDir + '/js');
-    shell.cp('index.js', buildDir + '/js');
-    shell.cp('README.md', buildDir);
-}
+var childProcessMock;
 
-function removeDist (buildDir) {
-    buildDir = buildDir || 'dist';
-    shell.rm('-rf', 'dist');
+function createFakeFS () {
+    var fakeFS = fsMock.fs({
+        'package.json': JSON.stringify(TEST_PKG_JSON),
+        'dist': {
+            'js': {
+                'index.js': 'console.log("test")',
+            },
+            'README.md': '## README\nlorum ipsum'
+        }
+    });
+    return fakeFS;
 }
 
 describe('maven-deploy', function () {
     beforeEach(function () {
         lastCmd = undefined;
         cmdCallback = undefined;
-        maven._init();
-        createDist();
+
+        childProcessMock = {
+            exec: sinon.spy(),
+            spawn: sinon.spy(),
+            fork: sinon.spy()
+        };
+
+        fs = createFakeFS();
+
+        maven = proxyquire('./index.js', {
+            'child_process': childProcessMock,
+            'fs': fs,
+            'fs-walk': proxyquire('fs-walk', {'fs': fs}),
+            'isbinaryfile': proxyquire('isbinaryfile', {'fs': fs})
+        });
     });
 
     afterEach(function () {
-        removeDist();
+        fs = null;
+        childProcessMock = null;
     });
 
     describe('config', function () {
@@ -58,19 +76,31 @@ describe('maven-deploy', function () {
 
     describe('package', function () {
         it('should create an archive based on defaults', function () {
-            var expectedPath = './dist/maven-deploy.war';
             maven.config(TEST_CONFIG);
             maven.package();
-            assert.ok(shell.test('-f', expectedPath), 'Expected archive to be at: ' + expectedPath);
+            var warFile = fs.readdirSync('./dist/').filter(function (fileName) {
+                return /\.war$/.test(fileName);
+            })[0];
+            expect(warFile).to.exist();
+            expect(warFile).to.equal(TEST_PKG_JSON.name + '.war');
         });
 
-        /*it('should have a fresh version number if the package version has changed after config', function () {
+        it('should have a fresh version number if the package version has changed after config(...)', function () {
             var cfg = extend({finalName: '{name}-{version}'}, TEST_CONFIG);
+            var newPkgJSON = extend(TEST_PKG_JSON, {version: '1.0.1'});
+
             maven.config(cfg);
-            // TODO Change version in package.json. Preferably not for real.
+
+            fs.writeFileSync('package.json', JSON.stringify(newPkgJSON), {encoding: 'utf-8'});
+
             maven.package();
-            assert.ok(shell.test('-f', expectedPath), 'Expected archive to be at: ' + expectedPath);
-        });*/
+
+            var warFile = fs.readdirSync('./dist/').filter(function (fileName) {
+                return /\.war$/.test(fileName);
+            })[0];
+            expect(warFile).to.exist();
+            expect(warFile).to.equal(TEST_PKG_JSON.name + '-' + newPkgJSON.version + '.war');
+        });
     });
 
     describe('deploy', function () {
