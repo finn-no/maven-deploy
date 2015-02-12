@@ -8,16 +8,24 @@ var defineOpts = require('define-options');
 var semver = require('semver');
 var isBinaryFileSync = require('isbinaryfile');
 
-var config, pkg, validateConfig, validateRepos, validateRepo;
-init();
+var pkg, validateConfig, validateRepos, validateRepo, userConfig;
+
+const DEFAULT_CONFIG = {
+    artifactId: '{name}',
+    buildDir: 'dist',
+    finalName: '{name}',
+    type: 'war',
+    fileEncoding: 'utf-8'
+};
+
 validateConfig = defineOpts({
     groupId       : 'string   - the Maven group id.',
-    artifactId    : '?|string - the Maven artifact id. default "' + config.artifactId + '".',
-    buildDir      : '?|string - build directory. default "' + config.buildDir + '".',
+    artifactId    : '?|string - the Maven artifact id. default "' + DEFAULT_CONFIG.artifactId + '".',
+    buildDir      : '?|string - build directory. default "' + DEFAULT_CONFIG.buildDir + '".',
     finalName     : '?|string - the final name of the file created when the built project is packaged. default "' +
-                    config.finalName + '"',
-    type          : '?|string - "jar" or "war". default "' + config.type + '".',
-    fileEncoding  : '?|string - valid file encoding. default "' + config.fileEncoding + '"'
+                    DEFAULT_CONFIG.finalName + '"',
+    type          : '?|string - "jar" or "war". default "' + DEFAULT_CONFIG.type + '".',
+    fileEncoding  : '?|string - valid file encoding. default "' + DEFAULT_CONFIG.fileEncoding + '"'
 });
 
 validateRepos = defineOpts({
@@ -29,48 +37,43 @@ validateRepo = defineOpts({
     url           : 'string   - URL to the Maven repository'
 });
 
-function init () {
-    config = {
-        artifactId: '{name}',
-        buildDir: 'dist',
-        finalName: '{name}',
-        type: 'war',
-        fileEncoding: 'utf-8'
-    };
-    pkg = readPackageJSON();
+function readPackageJSON (encoding) {
+    return JSON.parse(fs.readFileSync('package.json', encoding));
 }
 
-function readPackageJSON () {
-    return JSON.parse(fs.readFileSync('./package.json', config.fileEncoding));
-}
-
-function filterConfig () {
-    // replace {key} in config with value from package.json
-    Object.keys(config).forEach(function (key) {
-        var value = config[key];
+function filterConfig (configTmpl, pkg) {
+    // create a config object from the config template
+    // replace {key} with the key's value in package.json
+    var obj = extend({}, configTmpl);
+    Object.keys(obj).forEach(function (key) {
+        var value = obj[key];
         if (typeof value != 'string') { return; }
 
-        config[key] = value.replace(/{([^}]+)}/g, function (org, key) {
+        obj[key] = value.replace(/{([^}]+)}/g, function (org, key) {
             if (pkg[key] === undefined) { return org; }
             return pkg[key];
         });
     });
+
+    return obj;
 }
 
 function archivePath () {
-    return path.join(config.buildDir, config.finalName + '.' + config.type);
+    var conf = getConfig();
+    return path.join(conf.buildDir, conf.finalName + '.' + conf.type);
 }
 
 function mvnArgs (repoId, isSnapshot) {
+    var conf = getConfig();
     var args = {
-        packaging    : config.type,
+        packaging    : conf.type,
         file         : archivePath(),
-        groupId      : config.groupId,
-        artifactId   : config.artifactId,
+        groupId      : conf.groupId,
+        artifactId   : conf.artifactId,
         version      : pkg.version
     };
     if (repoId) {
-        var repos = config.repositories, l = repos.length;
+        var repos = conf.repositories, l = repos.length;
         for (var i=0; i<l; i++) {
             if (repos[i].id !== repoId) { continue; }
             args.repositoryId = repos[i].id;
@@ -115,18 +118,27 @@ function exit(){
     process.exit(1);
 }
 
+function getConfig () {
+    var configTmpl = extend({}, DEFAULT_CONFIG);
+    if (userConfig) { configTmpl = extend(configTmpl, userConfig); }
+    pkg = readPackageJSON(configTmpl.fileEncoding);
+    return filterConfig(configTmpl, pkg);
+}
+
+function setUserConfig (_userConfig) {
+    validateConfig(_userConfig);
+    userConfig = _userConfig;
+}
+
 var maven = {
-    config: function (c) {
-        validateConfig(c);
-        extend(config, c);
-        filterConfig();
-    },
+    config: setUserConfig,
 
     package: function (done) {
         var archive = new JSZip();
+        var conf = getConfig();
 
-        walk.walkSync(config.buildDir, function (base, file, stat) {
-            if (stat.isDirectory() || file.indexOf(config.finalName + '.' + config.type) === 0) {
+        walk.walkSync(conf.buildDir, function (base, file, stat) {
+            if (stat.isDirectory() || file.indexOf(conf.finalName + '.' + conf.type) === 0) {
                 return;
             }
             var filePath = path.join(base, file);
@@ -135,14 +147,15 @@ var maven = {
             if(isBinaryFileSync(filePath)) {
                 data = fs.readFileSync(filePath);
             } else {
-                data = fs.readFileSync(filePath, {'encoding': config.fileEncoding});
+                data = fs.readFileSync(filePath, {'encoding': conf.fileEncoding});
             }
 
-            archive.file(path.relative(config.buildDir, filePath), data);
+            archive.file(path.relative(conf.buildDir, filePath), data);
         });
 
         var buffer = archive.generate({type:'nodebuffer', compression:'DEFLATE'});
         var arPath = archivePath();
+        console.log('archive path', arPath);
         fs.writeFileSync(arPath, buffer);
 
         if (done) { done(); }
@@ -154,21 +167,16 @@ var maven = {
     },
 
     deploy: function (repoId, isSnapshot, done) {
+        var conf = getConfig();
         if (typeof isSnapshot == 'function') { done = isSnapshot; isSnapshot = false; }
-        validateRepos(config);
-        if (config.repositories.length === 0) {
+        validateRepos(conf);
+        if (conf.repositories.length === 0) {
             throw new Error('Maven repositories have to include at least one repository with ‘id’ and ‘url’.');
         }
-        config.repositories.forEach(validateRepo);
+        conf.repositories.forEach(validateRepo);
         this.package();
         mvn(['deploy:deploy-file'], repoId, isSnapshot, done);
-    },
-
-    // only for tests - do not use externally
-    _init: init,
-    _getPkg: function () { return pkg; },
-    _setPkg: function (_pkg) { pkg = _pkg; },
-    _mockExec: function (mock) { exec = mock; }
+    }
 };
 
 module.exports = maven;
