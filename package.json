@@ -27,21 +27,19 @@
   "dependencies": {
     "define-options": "0.1.x",
     "fs-walk": "0.0.x",
+    "isbinaryfile": "2.x",
     "jszip": "2.x",
-    "semver": "2.x",
-    "util-extend": "1.x",
-    "isbinaryfile": "2.x"
+    "semver": "^4.3.0",
+    "util-extend": "1.x"
   },
   "devDependencies": {
     "chai": "^1.10.0",
     "coveralls": "^2.11.2",
     "finn-js-code-style": "^4.1.2",
     "istanbul": "^0.3.5",
-    "jshint": "^2.5.5",
-    "mocha": "^1.21.4",
+    "mocha": "^2.1.0",
     "mocha-lcov-reporter": "0.0.1",
     "mock-fs": "^2.5.0",
-    "mockery": "^1.4.0",
     "proxyquire": "^1.3.1",
     "sinon": "^1.12.2",
     "sinon-chai": "^2.6.0"
