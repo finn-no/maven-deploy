@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha && npm run lint",
-    "lint": "./node_modules/.bin/jshint *.js",
+    "lint": "finn-js-code-style *.js",
     "coverage": "istanbul cover ./node_modules/mocha/bin/_mocha -- -u bdd -R spec",
     "coverage-travis": "istanbul cover _mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage",
     "prepublish": "./node_modules/.bin/jshint .jshintrc *.js"
@@ -36,6 +36,7 @@
   "devDependencies": {
     "chai": "^1.10.0",
     "coveralls": "^2.11.2",
+    "finn-js-code-style": "^4.1.2",
     "istanbul": "^0.3.5",
     "jshint": "^2.5.5",
     "mocha": "^1.21.4",
