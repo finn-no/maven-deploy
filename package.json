@@ -7,8 +7,7 @@
     "test": "mocha && npm run lint",
     "lint": "finn-js-code-style *.js",
     "coverage": "istanbul cover ./node_modules/mocha/bin/_mocha -- -u bdd -R spec",
-    "coverage-travis": "istanbul cover _mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage",
-    "prepublish": "./node_modules/.bin/jshint .jshintrc *.js"
+    "coverage-travis": "istanbul cover _mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage"
   },
   "keywords": [
     "maven",
