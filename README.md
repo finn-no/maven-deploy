@@ -1,5 +1,7 @@
 # maven-deploy
 
+![Travis-CI status](https://travis-ci.org/finn-no/maven-deploy.svg)
+
 A simple Node.js module to create a war-/jar-package and install/deploy to a local/remote Maven repository. It uses
 `mvn` to do the actual deployment, so you need maven installed locally.
 
