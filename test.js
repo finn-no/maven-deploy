@@ -38,6 +38,25 @@ function createFakeFS () {
     return fakeFS;
 }
 
+function npmVersion (next) {
+    var fileName = 'package.json';
+    var pkg = JSON.parse(fs.readFileSync(fileName), {encoding: 'utf-8'});
+    pkg.version = next;
+    fs.writeFileSync(fileName, JSON.stringify(pkg), {encoding: 'utf-8'});
+}
+
+function warFileInDist () {
+    return fs.readdirSync('./dist/').filter(function (fileName) {
+        return /\.war$/.test(fileName);
+    })[0];
+}
+
+function expectWarFileToEqual (expectedName) {
+    var warFile = warFileInDist();
+    expect(warFile).to.exist();
+    expect(warFile).to.equal(expectedName);
+}
+
 describe('maven-deploy', function () {
     beforeEach(function () {
         lastCmd = undefined;
@@ -78,28 +97,18 @@ describe('maven-deploy', function () {
         it('should create an archive based on defaults', function () {
             maven.config(TEST_CONFIG);
             maven.package();
-            var warFile = fs.readdirSync('./dist/').filter(function (fileName) {
-                return /\.war$/.test(fileName);
-            })[0];
-            expect(warFile).to.exist();
-            expect(warFile).to.equal(TEST_PKG_JSON.name + '.war');
+
+            expectWarFileToEqual(TEST_PKG_JSON.name + '.war');
         });
 
         it('should have a fresh version number if the package version has changed after config(...)', function () {
-            var cfg = extend({finalName: '{name}-{version}'}, TEST_CONFIG);
-            var newPkgJSON = extend(TEST_PKG_JSON, {version: '1.0.1'});
+            const EXPECTED_VERSION = '1.2.3';
 
-            maven.config(cfg);
-
-            fs.writeFileSync('package.json', JSON.stringify(newPkgJSON), {encoding: 'utf-8'});
-
+            maven.config( extend({finalName: '{name}-{version}'}, TEST_CONFIG) );
+            npmVersion(EXPECTED_VERSION);
             maven.package();
 
-            var warFile = fs.readdirSync('./dist/').filter(function (fileName) {
-                return /\.war$/.test(fileName);
-            })[0];
-            expect(warFile).to.exist();
-            expect(warFile).to.equal(TEST_PKG_JSON.name + '-' + newPkgJSON.version + '.war');
+            expectWarFileToEqual(TEST_PKG_JSON.name + '-' + EXPECTED_VERSION + '.war');
         });
     });
 
