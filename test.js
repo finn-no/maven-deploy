@@ -1,10 +1,14 @@
 /* globals describe, it, beforeEach, afterEach */
+/*jshint expr: true*/
 var assert = require('assert');
-var expect = require('chai').expect;
+var chai = require('chai');
+var expect = chai.expect;
 var sinon = require('sinon');
+chai.use( require('sinon-chai') );
 var extend = require('util-extend');
 var proxyquire = require('proxyquire');
 var fsMock = require('mock-fs');
+var semver = require('semver');
 var maven, fs;
 
 var lastCmd, cmdCallback;
@@ -109,6 +113,46 @@ describe('maven-deploy', function () {
             maven.package();
 
             expectWarFileToEqual(TEST_PKG_JSON.name + '-' + EXPECTED_VERSION + '.war');
+        });
+    });
+
+    describe('install', function () {
+        var execSpy;
+
+        beforeEach(function () {
+            execSpy = childProcessMock.exec;
+        });
+
+        it('should exec "mvn"', function () {
+            maven.config(TEST_CONFIG);
+            maven.install();
+            expect(execSpy).to.have.been.calledOnce;
+            expect(execSpy).to.have.been.calledWithMatch(/^mvn /);
+        });
+
+        it('should pass expected arguments to "mvn"', function () {
+            const EXPECTED_ARGS = [
+                '-B',
+                'install:install-file',
+                '-Dpackaging=war',
+                '-Dfile=dist/' + TEST_PKG_JSON.name + '.war',
+                '-DgroupId=' + GROUP_ID,
+                '-DartifactId=' + TEST_PKG_JSON.name
+            ];
+            maven.config(TEST_CONFIG);
+            maven.install();
+            var cmd = childProcessMock.exec.args[0][0].split(/\s+/);
+
+            expect(cmd).to.include.members(EXPECTED_ARGS);
+        });
+
+        it('should increase patch-version and add -SNAPSHOT to the version to follow Maven conventions', function () {
+            const EXPECTED_VERSION_ARG = '-Dversion=' + semver.inc(TEST_PKG_JSON.version, 'patch') + '-SNAPSHOT';
+            maven.config(TEST_CONFIG);
+            maven.install();
+            var cmd = childProcessMock.exec.args[0][0].split(/\s+/);
+
+            expect(cmd).to.include(EXPECTED_VERSION_ARG);
         });
     });
 
