@@ -1,0 +1,10 @@
+{
+  "libs": [],
+  "loadEagerly": [
+    "*.js"
+  ],
+  "plugins": {
+    "node": {},
+    "complete_strings": {}
+  }
+}
