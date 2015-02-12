@@ -4,14 +4,15 @@ The best thing is to always file an issue before submitting a pull-request. This
 
 ## Pull requests
 
-* merge all commits into on single commit for the pull request
-* do not alter the version number, this is done in the release process
-* when adding new features, make sure to add a test for it
-* make sure you run all tests to verify nothing broke
-	
-	$ npm test
+* Please use [Test-Driven-Development](http://en.wikipedia.org/wiki/Test-driven_development) when changing something
+  * Create small and readable unit-tests in test.js to verify a bug or feature
+  * When the test fails, do the changes in index.js to verify the change
+* Make sure you run all tests (`npm test`) to verify nothing broke
+* Do not alter the version number, this is done in the release process
 
 ## Code Style Guide
+
+Follow the jshint-rules. Verify by running `npm run lint`.
 
 If possible use the _.editorconfig_ file in the project as it automates the rule [see [EditorConfig.org](http://editorconfig.org/)]. Below is a summary:
 

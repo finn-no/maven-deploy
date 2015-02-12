@@ -36,9 +36,6 @@ It might be useful to store the config as a separate json-file, so you can re-us
 
     var config = require('./maven-config.json');
 
-## Contributing
-If you have ideas how to improve this (or other things), please contribute :D
-
 ## Package war/jar
 It expects output from the project to be in dist/ directory. It zips the content and outputs it to
 dist/{finalName}.{type}
@@ -77,4 +74,4 @@ Usage: `maven.deploy( repositoryId, [snapshot = false], [callback])`
 
 ## Contributing
 
-We would love your contribution, please consult the [contributing](contributing.md) page for how to make your contributions land into the project as easily as possible.
+We would love your contribution, please consult the [contributing](CONTRIBUTE.md) page for how to make your contributions land into the project as easily as possible.
