@@ -21,6 +21,7 @@ const DEFAULT_CONFIG = {
 validateConfig = defineOpts({
     groupId       : 'string   - the Maven group id.',
     artifactId    : '?|string - the Maven artifact id. default "' + DEFAULT_CONFIG.artifactId + '".',
+    classifier    : '?|string - the Maven optional classifier.',
     buildDir      : '?|string - build directory. default "' + DEFAULT_CONFIG.buildDir + '".',
     finalName     : '?|string - the final name of the file created when the built project is packaged. default "' +
                     DEFAULT_CONFIG.finalName + '"',
@@ -72,6 +73,9 @@ function mvnArgs (repoId, isSnapshot) {
         artifactId   : conf.artifactId,
         version      : pkg.version
     };
+    if (conf.classifier) {
+        args.classifier = conf.classifier;
+    }
     if (repoId) {
         var repos = conf.repositories, l = repos.length;
         for (var i=0; i<l; i++) {
