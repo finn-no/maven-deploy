@@ -60,7 +60,7 @@ function filterConfig (configTmpl, pkg) {
 
 function archivePath () {
     var conf = getConfig();
-    return path.join(conf.buildDir, conf.finalName + '.' + conf.type);
+    return path.join(conf.buildDir, conf.finalName + '.' + conf.type).replace(/\\/g, '/');
 }
 
 function mvnArgs (repoId, isSnapshot) {
@@ -150,7 +150,7 @@ var maven = {
                 data = fs.readFileSync(filePath, {'encoding': conf.fileEncoding});
             }
 
-            archive.file(path.relative(conf.buildDir, filePath), data);
+            archive.file(path.relative(conf.buildDir, filePath).replace(/\\/g, '/'), data);
         });
 
         var buffer = archive.generate({type:'nodebuffer', compression:'DEFLATE'});
