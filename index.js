@@ -58,9 +58,13 @@ function filterConfig (configTmpl, pkg) {
     return obj;
 }
 
+function convertPathIntoUnixLike (path) {
+    return path.replace(/\\/g, '/');
+}
+
 function archivePath () {
     var conf = getConfig();
-    return path.join(conf.buildDir, conf.finalName + '.' + conf.type).replace(/\\/g, '/');
+    return convertPathIntoUnixLike(path.join(conf.buildDir, conf.finalName + '.' + conf.type));
 }
 
 function mvnArgs (repoId, isSnapshot) {
@@ -150,7 +154,7 @@ var maven = {
                 data = fs.readFileSync(filePath, {'encoding': conf.fileEncoding});
             }
 
-            archive.file(path.relative(conf.buildDir, filePath).replace(/\\/g, '/'), data);
+            archive.file(convertPathIntoUnixLike(path.relative(conf.buildDir, filePath)), data);
         });
 
         var buffer = archive.generate({type:'nodebuffer', compression:'DEFLATE'});
