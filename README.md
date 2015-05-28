@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/finn-no/maven-deploy.svg?branch=master)](https://travis-ci.org/finn-no/maven-deploy)
 [![Coverage Status](https://coveralls.io/repos/finn-no/maven-deploy/badge.svg?branch=master)](https://coveralls.io/r/finn-no/maven-deploy?branch=master)
+[![Dependencies status](https://david-dm.org/finn-no/maven-deploy.svg)](https://david-dm.org/finn-no/maven-deploy)
 
 A simple Node.js module to create a war-/jar-package and install/deploy to a local/remote Maven repository. It uses
 `mvn` to do the actual deployment, so you need maven installed locally.
