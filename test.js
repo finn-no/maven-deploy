@@ -1,10 +1,7 @@
 /* globals describe, it, beforeEach, afterEach */
 /*jshint expr: true*/
 var assert = require('assert');
-var chai = require('chai');
-var expect = chai.expect;
 var sinon = require('sinon');
-chai.use( require('sinon-chai') );
 var extend = require('util-extend');
 var proxyquire = require('proxyquire');
 var fsMock = require('mock-fs');
@@ -55,10 +52,14 @@ function warFileInDist () {
     })[0];
 }
 
-function expectWarFileToEqual (expectedName) {
+function assertWarFileToEqual (expectedName) {
     var warFile = warFileInDist();
-    expect(warFile).to.exist();
-    expect(warFile).to.equal(expectedName);
+    assert.ok(warFile);
+    assert.equal(warFile, expectedName);
+}
+
+function arrayContains (arr, value) {
+    return arr.indexOf(value) !== -1;
 }
 
 describe('maven-deploy', function () {
@@ -102,7 +103,7 @@ describe('maven-deploy', function () {
             maven.config(TEST_CONFIG);
             maven.package();
 
-            expectWarFileToEqual(TEST_PKG_JSON.name + '.war');
+            assertWarFileToEqual(TEST_PKG_JSON.name + '.war');
         });
 
         it('should have a fresh version number if the package version has changed after config(...)', function () {
@@ -112,7 +113,7 @@ describe('maven-deploy', function () {
             npmVersion(EXPECTED_VERSION);
             maven.package();
 
-            expectWarFileToEqual(TEST_PKG_JSON.name + '-' + EXPECTED_VERSION + '.war');
+            assertWarFileToEqual(TEST_PKG_JSON.name + '-' + EXPECTED_VERSION + '.war');
         });
     });
 
@@ -126,8 +127,8 @@ describe('maven-deploy', function () {
         it('should exec "mvn"', function () {
             maven.config(TEST_CONFIG);
             maven.install();
-            expect(execSpy).to.have.been.calledOnce;
-            expect(execSpy).to.have.been.calledWithMatch(/^mvn /);
+            assert.ok(execSpy.calledOnce);
+            assert.ok(execSpy.calledWithMatch(/^mvn /));
         });
 
         it('should pass expected arguments to "mvn"', function () {
@@ -143,7 +144,10 @@ describe('maven-deploy', function () {
             maven.install();
             var cmd = childProcessMock.exec.args[0][0].split(/\s+/);
 
-            expect(cmd).to.include.members(EXPECTED_ARGS);
+            EXPECTED_ARGS.forEach(function (EXPECTED_ARG) {
+                assert.ok(arrayContains(cmd, EXPECTED_ARG), EXPECTED_ARG + ' should be part of the command: ' + cmd);
+            });
+            //expect(cmd).to.include.members(EXPECTED_ARGS);
         });
 
         it('should increase patch-version and add -SNAPSHOT to the version to follow Maven conventions', function () {
@@ -152,7 +156,8 @@ describe('maven-deploy', function () {
             maven.install();
             var cmd = childProcessMock.exec.args[0][0].split(/\s+/);
 
-            expect(cmd).to.include(EXPECTED_VERSION_ARG);
+            assert.ok(arrayContains(cmd, EXPECTED_VERSION_ARG), 'cmd should contain ' + EXPECTED_VERSION_ARG +
+                ', but does not.\ncmd: ' + cmd);
         });
     });
 

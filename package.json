@@ -33,7 +33,6 @@
     "util-extend": "1.x"
   },
   "devDependencies": {
-    "chai": "^1.10.0",
     "coveralls": "^2.11.2",
     "finn-js-code-style": "4.3.0",
     "istanbul": "0.3.14",
@@ -41,7 +40,6 @@
     "mocha-lcov-reporter": "0.0.2",
     "mock-fs": "2.7.0",
     "proxyquire": "1.5.0",
-    "sinon": "1.14.1",
-    "sinon-chai": "2.7.0"
+    "sinon": "1.14.1"
   }
 }
