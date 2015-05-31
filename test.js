@@ -1,6 +1,7 @@
 /* globals describe, it, beforeEach, afterEach */
 /*jshint expr: true*/
 var assert = require('assert');
+var path = require('path');
 var sinon = require('sinon');
 var extend = require('util-extend');
 var proxyquire = require('proxyquire');
@@ -136,7 +137,7 @@ describe('maven-deploy', function () {
                 '-B',
                 'install:install-file',
                 '-Dpackaging=war',
-                '-Dfile=dist/' + TEST_PKG_JSON.name + '.war',
+                '-Dfile=dist' + path.sep + TEST_PKG_JSON.name + '.war',
                 '-DgroupId=' + GROUP_ID,
                 '-DartifactId=' + TEST_PKG_JSON.name
             ];
@@ -179,4 +180,5 @@ describe('maven-deploy', function () {
             });
         });
     });
+
 });
