@@ -183,6 +183,18 @@ describe('maven-deploy', function () {
                 maven.deploy('dummy-repo', true);
             });
         });
+
+        it('should call callback with err if something goes wrong', function () {
+            maven.config(TEST_CONFIG);
+            maven.deploy('dummy-repo', true, function (err) {
+                assert.ok(err);
+                assert.ok(err instanceof Error);
+                assert.equal(err.message, 'something went wrong');
+            });
+
+            var execCallback = childProcessMock.exec.firstCall.args[1];
+            execCallback(new Error('something went wrong'));
+        });
     });
 
     describe('file path', function () {

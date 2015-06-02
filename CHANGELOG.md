@@ -1,6 +1,7 @@
 # Changelog
 
 ## Next release
+* BREAKING CHANGE: Do not exit if `mvn` command fails. Pass error, stdout and stderr to callback instead.
 * Fix wrong path-separator for the archive on Windows (Anton Savchenko)
 * Add Classifier maven parameter (jmorille and Gregers Rygg)
 * Updated dependencies and removed Chai (Gregers Rygg)

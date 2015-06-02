@@ -78,7 +78,7 @@ function mvnArgs (repoId, isSnapshot) {
         classifier   : conf.classifier,
         version      : pkg.version
     };
-    
+
     if (repoId) {
         var repos = conf.repositories, l = repos.length;
         for (var i=0; i<l; i++) {
@@ -105,7 +105,6 @@ function check (cmd, err, stdout, stderr) {
             console.error(stdout);
             console.error(stderr);
         }
-        exit();
     }
 }
 
@@ -119,10 +118,6 @@ function command (cmd, done) {
 
 function mvn (args, repoId, isSnapshot, done) {
     command('mvn -B ' + args.concat(mvnArgs(repoId, isSnapshot)).join(' '), done);
-}
-
-function exit(){
-    process.exit(1);
 }
 
 function getConfig () {
