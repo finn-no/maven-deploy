@@ -191,7 +191,7 @@ describe('maven-deploy', function () {
 
             var context = fs.readFileSync('./dist/' + pathToWarFile);
             var zip = new JSZip(context);
-            assert.ok(zip.file("js/index.js"));
+            assert.ok(zip.file('js/index.js'));
         });
     });
 
