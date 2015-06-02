@@ -37,6 +37,10 @@ validateRepo = defineOpts({
     url           : 'string   - URL to the Maven repository'
 });
 
+function convertPathIntoUnixLike (path) {
+    return path.replace(/\\/g, '/');
+}
+
 function readPackageJSON (encoding) {
     return JSON.parse(fs.readFileSync('package.json', encoding));
 }
@@ -150,7 +154,7 @@ var maven = {
                 data = fs.readFileSync(filePath, {'encoding': conf.fileEncoding});
             }
 
-            archive.file(path.relative(conf.buildDir, filePath), data);
+            archive.file(convertPathIntoUnixLike(path.relative(conf.buildDir, filePath)), data);
         });
 
         var buffer = archive.generate({type:'nodebuffer', compression:'DEFLATE'});

@@ -7,6 +7,7 @@ var extend = require('util-extend');
 var proxyquire = require('proxyquire');
 var fsMock = require('mock-fs');
 var semver = require('semver');
+var JSZip = require('jszip');
 var maven, fs;
 
 var lastCmd, cmdCallback;
@@ -178,6 +179,19 @@ describe('maven-deploy', function () {
                 });
                 maven.deploy('dummy-repo', true);
             });
+        });
+    });
+
+    describe('file path', function () {
+        it('should zip file with unix-style path', function () {
+
+            maven.config(TEST_CONFIG);
+            maven.package();
+            var pathToWarFile = warFileInDist();
+
+            var context = fs.readFileSync('./dist/' + pathToWarFile);
+            var zip = new JSZip(context);
+            assert.ok(zip.file("js/index.js"));
         });
     });
 
