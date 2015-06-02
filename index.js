@@ -75,11 +75,10 @@ function mvnArgs (repoId, isSnapshot) {
         file         : archivePath(),
         groupId      : conf.groupId,
         artifactId   : conf.artifactId,
+        classifier   : conf.classifier,
         version      : pkg.version
     };
-    if (conf.classifier) {
-        args.classifier = conf.classifier;
-    }
+    
     if (repoId) {
         var repos = conf.repositories, l = repos.length;
         for (var i=0; i<l; i++) {

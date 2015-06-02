@@ -13,13 +13,15 @@ var maven, fs;
 var lastCmd, cmdCallback;
 
 const GROUP_ID = 'com.dummy',
+    TEST_CLASSIFIER = 'test',
     DUMMY_REPO = {
         'id': 'dummy-repo',
         'url': 'http://mavendummyrepo.com/dummy/'
     },
     TEST_CONFIG = {
         groupId: GROUP_ID,
-        repositories: [DUMMY_REPO]
+        repositories: [DUMMY_REPO],
+        classifier: TEST_CLASSIFIER
     },
     TEST_PKG_JSON = {
         name: 'test-pkg',
@@ -140,7 +142,8 @@ describe('maven-deploy', function () {
                 '-Dpackaging=war',
                 '-Dfile=dist' + path.sep + TEST_PKG_JSON.name + '.war',
                 '-DgroupId=' + GROUP_ID,
-                '-DartifactId=' + TEST_PKG_JSON.name
+                '-DartifactId=' + TEST_PKG_JSON.name,
+                '-Dclassifier=' + TEST_CLASSIFIER
             ];
             maven.config(TEST_CONFIG);
             maven.install();
