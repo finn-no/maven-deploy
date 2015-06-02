@@ -2,6 +2,7 @@
 
 ## Next release
 * Fix wrong path-separator for the archive on Windows (Anton Savchenko)
+* Add Classifier maven parameter (jmorille and Gregers Rygg)
 * Updated dependencies and removed Chai (Gregers Rygg)
 
 ## 1.1.0
