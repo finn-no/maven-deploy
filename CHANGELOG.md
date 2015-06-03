@@ -3,6 +3,9 @@
 ## Next release
 * BREAKING CHANGE: Do not exit if `mvn` command fails. Pass error, stdout and stderr to callback instead.
 
+## 1.2.1
+* Strip undefined mvn arguments
+
 ## 1.2.0
 * Fix wrong path-separator for the archive on Windows (Anton Savchenko)
 * Add Classifier maven parameter (jmorille and Gregers Rygg)
