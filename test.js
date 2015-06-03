@@ -155,6 +155,23 @@ describe('maven-deploy', function () {
             //expect(cmd).to.include.members(EXPECTED_ARGS);
         });
 
+        it('should filter undefined arguments', function () {
+            const UNEXPECTED_ARGS = [
+                '-Dclassifier=undefined'
+            ];
+            maven.config({
+                groupId: GROUP_ID,
+                repositories: [DUMMY_REPO]
+            });
+            maven.install();
+            var cmd = childProcessMock.exec.args[0][0].split(/\s+/);
+
+            UNEXPECTED_ARGS.forEach(function (EXPECTED_ARG) {
+                assert.ok(!arrayContains(cmd, EXPECTED_ARG), EXPECTED_ARG + ' should not be part of the command: ' + cmd);
+            });
+            //expect(cmd).to.include.members(EXPECTED_ARGS);
+        });
+
         it('should increase patch-version and add -SNAPSHOT to the version to follow Maven conventions', function () {
             const EXPECTED_VERSION_ARG = '-Dversion=' + semver.inc(TEST_PKG_JSON.version, 'patch') + '-SNAPSHOT';
             maven.config(TEST_CONFIG);

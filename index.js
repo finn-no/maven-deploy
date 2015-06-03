@@ -92,7 +92,9 @@ function mvnArgs (repoId, isSnapshot) {
         args.version = semver.inc(args.version, 'patch') + '-SNAPSHOT';
     }
 
-    return Object.keys(args).reduce(function (arr, key) {
+    return Object.keys(args).filter(function (key) {
+        return typeof args[key] !== 'undefined';
+    }).reduce(function (arr, key) {
         return arr.concat('-D' + key + '=' + args[key]);
     }, []);
 }
