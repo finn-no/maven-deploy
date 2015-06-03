@@ -166,8 +166,8 @@ describe('maven-deploy', function () {
             maven.install();
             var cmd = childProcessMock.exec.args[0][0].split(/\s+/);
 
-            UNEXPECTED_ARGS.forEach(function (EXPECTED_ARG) {
-                assert.ok(!arrayContains(cmd, EXPECTED_ARG), EXPECTED_ARG + ' should not be part of the command: ' + cmd);
+            UNEXPECTED_ARGS.forEach(function (UNEXPECTED_ARG) {
+                assert.ok(!arrayContains(cmd, UNEXPECTED_ARG), UNEXPECTED_ARG + ' should not be part of the command: ' + cmd);
             });
             //expect(cmd).to.include.members(EXPECTED_ARGS);
         });
