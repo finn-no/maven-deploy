@@ -8,14 +8,15 @@ var defineOpts = require('define-options');
 var semver = require('semver');
 var isBinaryFileSync = require('isbinaryfile');
 
-var pkg, validateConfig, validateRepos, validateRepo, userConfig;
+var validateConfig, validateRepos, validateRepo, userConfig;
 
 const DEFAULT_CONFIG = {
     artifactId: '{name}',
     buildDir: 'dist',
     finalName: '{name}',
     type: 'war',
-    fileEncoding: 'utf-8'
+    fileEncoding: 'utf-8',
+    version: '{version}'
 };
 
 validateConfig = defineOpts({
@@ -63,20 +64,21 @@ function filterConfig (configTmpl, pkg) {
     return obj;
 }
 
-function archivePath () {
-    var conf = getConfig();
+function archivePath (isSnapshot) {
+    var conf = getConfig(isSnapshot);
     return path.join(conf.buildDir, conf.finalName + '.' + conf.type);
 }
 
 function mvnArgs (repoId, isSnapshot) {
-    var conf = getConfig();
+    var conf = getConfig(isSnapshot);
+
     var args = {
         packaging    : conf.type,
-        file         : archivePath(),
+        file         : archivePath(isSnapshot),
         groupId      : conf.groupId,
         artifactId   : conf.artifactId,
         classifier   : conf.classifier,
-        version      : pkg.version
+        version      : conf.version
     };
 
     if (repoId) {
@@ -87,9 +89,6 @@ function mvnArgs (repoId, isSnapshot) {
             args.url          = repos[i].url;
             break;
         }
-    }
-    if (isSnapshot) {
-        args.version = semver.inc(args.version, 'patch') + '-SNAPSHOT';
     }
 
     return Object.keys(args).filter(function (key) {
@@ -122,10 +121,16 @@ function mvn (args, repoId, isSnapshot, done) {
     command('mvn -B ' + args.concat(mvnArgs(repoId, isSnapshot)).join(' '), done);
 }
 
-function getConfig () {
+function getConfig (isSnapshot) {
     var configTmpl = extend({}, DEFAULT_CONFIG);
     if (userConfig) { configTmpl = extend(configTmpl, userConfig); }
-    pkg = readPackageJSON(configTmpl.fileEncoding);
+
+    var pkg = readPackageJSON(configTmpl.fileEncoding);
+
+    if (isSnapshot) {
+        pkg.version = semver.inc(pkg.version, 'patch') + '-SNAPSHOT';
+    }
+
     return filterConfig(configTmpl, pkg);
 }
 
@@ -137,9 +142,10 @@ function setUserConfig (_userConfig) {
 var maven = {
     config: setUserConfig,
 
-    package: function (done) {
+    package: function (isSnapshot, done) {
+        if (typeof isSnapshot == 'function') { done = isSnapshot; isSnapshot = false; }
         var archive = new JSZip();
-        var conf = getConfig();
+        var conf = getConfig(isSnapshot);
 
         walk.walkSync(conf.buildDir, function (base, file, stat) {
             if (stat.isDirectory() || file.indexOf(conf.finalName + '.' + conf.type) === 0) {
@@ -158,7 +164,7 @@ var maven = {
         });
 
         var buffer = archive.generate({type:'nodebuffer', compression:'DEFLATE'});
-        var arPath = archivePath();
+        var arPath = archivePath(isSnapshot);
         console.log('archive path', arPath);
         fs.writeFileSync(arPath, buffer);
 
@@ -166,7 +172,7 @@ var maven = {
     },
 
     install: function (done) {
-        this.package();
+        this.package(true);
         mvn(['install:install-file'], null, true, done);
     },
 
@@ -178,7 +184,7 @@ var maven = {
             throw new Error('Maven repositories have to include at least one repository with ‘id’ and ‘url’.');
         }
         conf.repositories.forEach(validateRepo);
-        this.package();
+        this.package(isSnapshot);
         mvn(['deploy:deploy-file'], repoId, isSnapshot, done);
     }
 };

@@ -181,6 +181,18 @@ describe('maven-deploy', function () {
             assert.ok(arrayContains(cmd, EXPECTED_VERSION_ARG), 'cmd should contain ' + EXPECTED_VERSION_ARG +
                 ', but does not.\ncmd: ' + cmd);
         });
+
+        it('should include -SNAPSHOT in the filename if finalName includes {version}', function () {
+            var EXPECTED_FILENAME = TEST_PKG_JSON.name + '-' + semver.inc(TEST_PKG_JSON.version, 'patch') +
+                '-SNAPSHOT.war';
+            var config = extend({}, TEST_CONFIG);
+            config.finalName = '{name}-{version}';
+            
+            maven.config(config);
+            maven.install();
+
+            assertWarFileToEqual(EXPECTED_FILENAME);
+        });
     });
 
     describe('deploy', function () {
