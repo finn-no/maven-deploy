@@ -1,7 +1,11 @@
 # Changelog
 
-## Next release
+## Next major release
 * BREAKING CHANGE: Do not exit if `mvn` command fails. Pass error, stdout and stderr to callback instead.
+
+## 1.3.0
+* Revert breaking change accidentally shipped in 1.2.1
+* {version} in finalName for a snapshot should use the new snapshot-version
 
 ## 1.2.1
 * Strip undefined mvn arguments
