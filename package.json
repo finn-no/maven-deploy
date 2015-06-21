@@ -1,6 +1,6 @@
 {
   "name": "maven-deploy",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "A simple Node.js module to create a war-/jar-package and install/deploy to a local/remote Maven repository",
   "main": "index.js",
   "scripts": {
