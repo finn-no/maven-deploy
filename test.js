@@ -38,7 +38,8 @@ function createFakeFS () {
                 'index.js': 'console.log("test")',
             },
             'README.md': '## README\nlorum ipsum'
-        }
+        },
+        'target': {}
     });
     return fakeFS;
 }
@@ -50,14 +51,17 @@ function npmVersion (next) {
     fs.writeFileSync(fileName, JSON.stringify(pkg), {encoding: 'utf-8'});
 }
 
-function warFileInDist () {
-    return fs.readdirSync('./dist/').filter(function (fileName) {
+function warFileIn (directory) {
+    if (directory == undefined) {
+      directory = './dist/';
+    }
+    return fs.readdirSync(directory).filter(function (fileName) {
         return /\.war$/.test(fileName);
     })[0];
 }
 
-function assertWarFileToEqual (expectedName) {
-    var warFile = warFileInDist();
+function assertWarFileToEqual (expectedName, directory) {
+    var warFile = warFileIn(directory);
     assert.ok(warFile);
     assert.equal(warFile, expectedName);
 }
@@ -119,6 +123,18 @@ describe('maven-deploy', function () {
 
             assertWarFileToEqual(TEST_PKG_JSON.name + '-' + EXPECTED_VERSION + '.war');
         });
+
+
+        it('should create an archive using target directory', function () {
+            var targetDir = './target';
+            var config = extend({targetDir: targetDir}, TEST_CONFIG);
+
+            maven.config(config);
+            maven.package();
+
+            assertWarFileToEqual(TEST_PKG_JSON.name + '.war', targetDir);
+        });
+
     });
 
     describe('install', function () {
@@ -219,7 +235,7 @@ describe('maven-deploy', function () {
 
             maven.config(TEST_CONFIG);
             maven.package();
-            var pathToWarFile = warFileInDist();
+            var pathToWarFile = warFileIn();
 
             var context = fs.readFileSync('./dist/' + pathToWarFile);
             var zip = new JSZip(context);
