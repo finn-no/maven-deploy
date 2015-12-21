@@ -13,6 +13,7 @@ var validateConfig, validateRepos, validateRepo, userConfig;
 const DEFAULT_CONFIG = {
     artifactId: '{name}',
     buildDir: 'dist',
+    targetDir: 'dist',
     finalName: '{name}',
     type: 'war',
     fileEncoding: 'utf-8',
@@ -24,6 +25,7 @@ validateConfig = defineOpts({
     artifactId    : '?|string - the Maven artifact id. default "' + DEFAULT_CONFIG.artifactId + '".',
     classifier    : '?|string - the Maven optional classifier.',
     buildDir      : '?|string - build directory. default "' + DEFAULT_CONFIG.buildDir + '".',
+    targetDir     : '?|string - were to create built artifact. default "' + DEFAULT_CONFIG.targetDir + '".',
     finalName     : '?|string - the final name of the file created when the built project is packaged. default "' +
                     DEFAULT_CONFIG.finalName + '"',
     type          : '?|string - "jar" or "war". default "' + DEFAULT_CONFIG.type + '".',
@@ -66,7 +68,7 @@ function filterConfig (configTmpl, pkg) {
 
 function archivePath (isSnapshot) {
     var conf = getConfig(isSnapshot);
-    return path.join(conf.buildDir, conf.finalName + '.' + conf.type);
+    return path.join(conf.targetDir, conf.finalName + '.' + conf.type);
 }
 
 function mvnArgs (repoId, isSnapshot) {
