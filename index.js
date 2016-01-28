@@ -165,7 +165,7 @@ var maven = {
                 data = fs.readFileSync(filePath, {'encoding': conf.fileEncoding});
             }
 
-            archive.file(convertPathIntoUnixLike(path.relative(conf.buildDir, filePath)), data);
+            archive.file(convertPathIntoUnixLike(path.relative(conf.buildDir, filePath)), data, {createFolders: true});
         });
 
         var buffer = archive.generate({type:'nodebuffer', compression:'DEFLATE'});
