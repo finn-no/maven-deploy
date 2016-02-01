@@ -56,6 +56,12 @@ function warFileInDist () {
     })[0];
 }
 
+function warFileInDistAsZip () {
+    var pathToWarFile = warFileInDist();
+    var context = fs.readFileSync('./dist/' + pathToWarFile);
+    return new JSZip(context);
+}
+
 function assertWarFileToEqual (expectedName) {
     var warFile = warFileInDist();
     assert.ok(warFile);
@@ -187,7 +193,7 @@ describe('maven-deploy', function () {
                 '-SNAPSHOT.war';
             var config = extend({}, TEST_CONFIG);
             config.finalName = '{name}-{version}';
-            
+
             maven.config(config);
             maven.install();
 
@@ -216,14 +222,19 @@ describe('maven-deploy', function () {
 
     describe('file path', function () {
         it('should zip file with unix-style path', function () {
-
             maven.config(TEST_CONFIG);
             maven.package();
-            var pathToWarFile = warFileInDist();
 
-            var context = fs.readFileSync('./dist/' + pathToWarFile);
-            var zip = new JSZip(context);
+            var zip = warFileInDistAsZip();
             assert.ok(zip.file('js/index.js'));
+        });
+
+        it('should zip file with non-virtual folders', function () {
+            maven.config(TEST_CONFIG);
+            maven.package();
+
+            var zip = warFileInDistAsZip();
+            assert.equal(zip.folder(/^js/).length, 1);
         });
     });
 
