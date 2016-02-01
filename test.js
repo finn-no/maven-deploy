@@ -6,9 +6,13 @@ var sinon = require('sinon');
 var extend = require('util-extend');
 var proxyquire = require('proxyquire');
 var fsMock = require('mock-fs');
+var fsReal = require('fs');
 var semver = require('semver');
 var JSZip = require('jszip');
+var bufferEqual = require('buffer-equal');
 var maven, fs;
+
+var BINARY_FILE = fsReal.readFileSync('px.png');
 
 var lastCmd, cmdCallback;
 
@@ -37,7 +41,8 @@ function createFakeFS () {
             'js': {
                 'index.js': 'console.log("test")',
             },
-            'README.md': '## README\nlorum ipsum'
+            'README.md': '## README\nlorum ipsum',
+            'px.png': BINARY_FILE
         }
     });
     return fakeFS;
@@ -70,6 +75,15 @@ function assertWarFileToEqual (expectedName) {
 
 function arrayContains (arr, value) {
     return arr.indexOf(value) !== -1;
+}
+
+function toArrayBuffer(buffer) {
+    var ab = new ArrayBuffer(buffer.length);
+    var view = new Uint8Array(ab);
+    for (var i = 0; i < buffer.length; ++i) {
+        view[i] = buffer[i];
+    }
+    return view;
 }
 
 describe('maven-deploy', function () {
@@ -220,7 +234,7 @@ describe('maven-deploy', function () {
         });
     });
 
-    describe('file path', function () {
+    describe('archive', function () {
         it('should zip file with unix-style path', function () {
             maven.config(TEST_CONFIG);
             maven.package();
@@ -235,6 +249,17 @@ describe('maven-deploy', function () {
 
             var zip = warFileInDistAsZip();
             assert.equal(zip.folder(/^js/).length, 1);
+        });
+
+        it('should save binary files correctly', function () {
+            maven.config(TEST_CONFIG);
+            maven.package();
+
+            var zip = warFileInDistAsZip();
+            var image = zip.file('px.png');
+            assert.ok(image, 'archive should contain px.png image');
+            var imageEqualOriginal = bufferEqual(new Buffer( new Uint8Array(image.asArrayBuffer()) ), BINARY_FILE);
+            assert.ok(imageEqualOriginal, 'image data equals the original');
         });
     });
 

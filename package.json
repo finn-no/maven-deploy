@@ -34,6 +34,7 @@
     "util-extend": "^1.0.3"
   },
   "devDependencies": {
+    "buffer-equal": "^1.0.0",
     "coveralls": "^2.11.2",
     "finn-js-code-style": "4.3.0",
     "istanbul": "^0.4.2",
