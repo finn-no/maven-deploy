@@ -6,7 +6,7 @@ var extend = require('util-extend');
 var exec = require('child_process').exec;
 var defineOpts = require('define-options');
 var semver = require('semver');
-var isBinaryFileSync = require('isbinaryfile');
+var isBinaryFile = require('isbinaryfile');
 
 var validateConfig, validateRepos, validateRepo, userConfig;
 
@@ -159,7 +159,7 @@ var maven = {
             var filePath = path.join(base, file);
 
             var data;
-            if(isBinaryFileSync(filePath)) {
+            if(isBinaryFile.sync(filePath)) {
                 data = fs.readFileSync(filePath);
             } else {
                 data = fs.readFileSync(filePath, {'encoding': conf.fileEncoding});
