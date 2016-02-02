@@ -73,6 +73,12 @@ Usage: `maven.deploy( repositoryId, [snapshot = false], [callback])`
     maven.config(config);
     maven.deploy('example-internal-release');
 
+### Example: deploy existing archive file
+
+    var maven = require('maven-deploy');
+    maven.config(config);
+    maven.deploy('example-internal-release', 'file.jar');
+
 ## Contributing
 
 We would love your contribution, please consult the [contributing](CONTRIBUTE.md) page for how to make your contributions land into the project as easily as possible.

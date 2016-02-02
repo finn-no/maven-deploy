@@ -69,12 +69,12 @@ function archivePath (isSnapshot) {
     return path.join(conf.buildDir, conf.finalName + '.' + conf.type);
 }
 
-function mvnArgs (repoId, isSnapshot) {
+function mvnArgs (repoId, isSnapshot, file) {
     var conf = getConfig(isSnapshot);
 
     var args = {
         packaging    : conf.type,
-        file         : archivePath(isSnapshot),
+        file         : file,
         groupId      : conf.groupId,
         artifactId   : conf.artifactId,
         classifier   : conf.classifier,
@@ -118,14 +118,6 @@ function command (cmd, done) {
     });
 }
 
-function mvn (args, repoId, isSnapshot, done) {
-    command('mvn -B ' + args.concat(mvnArgs(repoId, isSnapshot)).join(' '), done);
-}
-
-function exit(){
-    process.exit(1);
-}
-
 function getConfig (isSnapshot) {
     var configTmpl = extend({}, DEFAULT_CONFIG);
     if (userConfig) { configTmpl = extend(configTmpl, userConfig); }
@@ -139,6 +131,50 @@ function getConfig (isSnapshot) {
     return filterConfig(configTmpl, pkg);
 }
 
+function package (isSnapshot, done) {
+    if (typeof isSnapshot == 'function') { done = isSnapshot; isSnapshot = false; }
+    var archive = new JSZip();
+    var conf = getConfig(isSnapshot);
+
+    walk.walkSync(conf.buildDir, function (base, file, stat) {
+        if (stat.isDirectory() || file.indexOf(conf.finalName + '.' + conf.type) === 0) {
+            return;
+        }
+        var filePath = path.join(base, file);
+
+        var data;
+        if(isBinaryFile.sync(filePath)) {
+            data = fs.readFileSync(filePath);
+        } else {
+            data = fs.readFileSync(filePath, {'encoding': conf.fileEncoding});
+        }
+
+        archive.file(convertPathIntoUnixLike(path.relative(conf.buildDir, filePath)), data, {createFolders: true});
+    });
+
+    var buffer = archive.generate({type:'nodebuffer', compression:'DEFLATE'});
+    var arPath = archivePath(isSnapshot);
+    console.log('archive path', arPath);
+    fs.writeFileSync(arPath, buffer);
+
+    if (done) { done(); }
+    return arPath;
+}
+
+function mvn (args, repoId, isSnapshot, file, done) {
+    if (!file) { file = package(isSnapshot); }
+    var stats = fs.statSync(file);
+    if (!stats.isFile()) {
+        throw new Error('File does not exist: ' + file);
+    }
+
+    command('mvn -B ' + args.concat(mvnArgs(repoId, isSnapshot, file)).join(' '), done);
+}
+
+function exit(){
+    process.exit(1);
+}
+
 function setUserConfig (_userConfig) {
     validateConfig(_userConfig);
     userConfig = _userConfig;
@@ -147,50 +183,26 @@ function setUserConfig (_userConfig) {
 var maven = {
     config: setUserConfig,
 
-    package: function (isSnapshot, done) {
-        if (typeof isSnapshot == 'function') { done = isSnapshot; isSnapshot = false; }
-        var archive = new JSZip();
-        var conf = getConfig(isSnapshot);
+    package: package,
 
-        walk.walkSync(conf.buildDir, function (base, file, stat) {
-            if (stat.isDirectory() || file.indexOf(conf.finalName + '.' + conf.type) === 0) {
-                return;
-            }
-            var filePath = path.join(base, file);
-
-            var data;
-            if(isBinaryFile.sync(filePath)) {
-                data = fs.readFileSync(filePath);
-            } else {
-                data = fs.readFileSync(filePath, {'encoding': conf.fileEncoding});
-            }
-
-            archive.file(convertPathIntoUnixLike(path.relative(conf.buildDir, filePath)), data, {createFolders: true});
-        });
-
-        var buffer = archive.generate({type:'nodebuffer', compression:'DEFLATE'});
-        var arPath = archivePath(isSnapshot);
-        console.log('archive path', arPath);
-        fs.writeFileSync(arPath, buffer);
-
-        if (done) { done(); }
+    install: function (file, done) {
+        if (typeof file == 'function') { done = file, file = undefined; }
+        mvn(['install:install-file'], null, true, file, done);
     },
 
-    install: function (done) {
-        this.package(true);
-        mvn(['install:install-file'], null, true, done);
-    },
-
-    deploy: function (repoId, isSnapshot, done) {
+    deploy: function (repoId, file, isSnapshot, done) {
         var conf = getConfig();
-        if (typeof isSnapshot == 'function') { done = isSnapshot; isSnapshot = false; }
+        //if (isSnapshot && typeof isSnapshot != 'boolean') { done = file, file = isSnapshot, isSnapshot = false; }
+        if (file && typeof file != 'string') { done = isSnapshot, isSnapshot = file, file = undefined; }
+        if (isSnapshot && isSnapshot != 'boolean') { done = isSnapshot, isSnapshot = false; }
+        //if (file && typeof file == 'function') { done = file, file = undefined; }
+
         validateRepos(conf);
         if (conf.repositories.length === 0) {
             throw new Error('Maven repositories have to include at least one repository with ‘id’ and ‘url’.');
         }
         conf.repositories.forEach(validateRepo);
-        this.package(isSnapshot);
-        mvn(['deploy:deploy-file'], repoId, isSnapshot, done);
+        mvn(['deploy:deploy-file'], repoId, isSnapshot, file, done);
     }
 };
 
