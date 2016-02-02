@@ -18,13 +18,17 @@ var lastCmd, cmdCallback;
 
 const GROUP_ID = 'com.dummy',
     TEST_CLASSIFIER = 'test',
-    DUMMY_REPO = {
+    DUMMY_REPO_SNAPSHOT = {
         'id': 'dummy-repo',
         'url': 'http://mavendummyrepo.com/dummy/'
     },
+    DUMMY_REPO_RELEASE = {
+        'id': 'dummy-repo-release',
+        'url': 'http://mavendummyrepo.com/dummy-release/'
+    },
     TEST_CONFIG = {
         groupId: GROUP_ID,
-        repositories: [DUMMY_REPO],
+        repositories: [DUMMY_REPO_SNAPSHOT, DUMMY_REPO_RELEASE],
         classifier: TEST_CLASSIFIER
     },
     TEST_PKG_JSON = {
@@ -33,6 +37,7 @@ const GROUP_ID = 'com.dummy',
     };
 
 var childProcessMock;
+var execSpy;
 
 function createFakeFS () {
     var fakeFS = fsMock.fs({
@@ -77,6 +82,20 @@ function arrayContains (arr, value) {
     return arr.indexOf(value) !== -1;
 }
 
+function assertArgs (cmd, expectedArgs) {
+    var actualArgs = cmd.split(/\s+/);
+    expectedArgs.forEach(function (expectedArg) {
+        assert.ok(arrayContains(actualArgs, expectedArg), expectedArg + ' should be part of the command: ' + cmd);
+    });
+}
+
+function assertNotArgs (cmd, unexpectedArgs) {
+    var actualArgs = cmd.split(/\s+/);
+    unexpectedArgs.forEach(function (expectedArg) {
+        assert.ok(!arrayContains(actualArgs, expectedArg), expectedArg + ' should not be part of the command: ' + cmd);
+    });
+}
+
 describe('maven-deploy', function () {
     beforeEach(function () {
         lastCmd = undefined;
@@ -87,6 +106,8 @@ describe('maven-deploy', function () {
             spawn: sinon.spy(),
             fork: sinon.spy()
         };
+
+        execSpy = childProcessMock.exec;
 
         fs = createFakeFS();
 
@@ -107,7 +128,7 @@ describe('maven-deploy', function () {
         it('should throw an error if groupId is missing', function () {
             assert.throws(function () {
                 maven.config({
-                    repositories: [DUMMY_REPO]
+                    repositories: [DUMMY_REPO_SNAPSHOT]
                 });
             });
         });
@@ -133,11 +154,6 @@ describe('maven-deploy', function () {
     });
 
     describe('install', function () {
-        var execSpy;
-
-        beforeEach(function () {
-            execSpy = childProcessMock.exec;
-        });
 
         it('should exec "mvn"', function () {
             maven.config(TEST_CONFIG);
@@ -158,12 +174,8 @@ describe('maven-deploy', function () {
             ];
             maven.config(TEST_CONFIG);
             maven.install();
-            var cmd = childProcessMock.exec.args[0][0].split(/\s+/);
 
-            EXPECTED_ARGS.forEach(function (EXPECTED_ARG) {
-                assert.ok(arrayContains(cmd, EXPECTED_ARG), EXPECTED_ARG + ' should be part of the command: ' + cmd);
-            });
-            //expect(cmd).to.include.members(EXPECTED_ARGS);
+            assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
         });
 
         it('should filter undefined arguments', function () {
@@ -172,15 +184,11 @@ describe('maven-deploy', function () {
             ];
             maven.config({
                 groupId: GROUP_ID,
-                repositories: [DUMMY_REPO]
+                repositories: [DUMMY_REPO_SNAPSHOT]
             });
             maven.install();
-            var cmd = childProcessMock.exec.args[0][0].split(/\s+/);
 
-            UNEXPECTED_ARGS.forEach(function (UNEXPECTED_ARG) {
-                assert.ok(!arrayContains(cmd, UNEXPECTED_ARG), UNEXPECTED_ARG + ' should not be part of the command: ' + cmd);
-            });
-            //expect(cmd).to.include.members(EXPECTED_ARGS);
+            assertNotArgs(execSpy.args[0][0], UNEXPECTED_ARGS);
         });
 
         it('should increase patch-version and add -SNAPSHOT to the version to follow Maven conventions', function () {
@@ -204,6 +212,19 @@ describe('maven-deploy', function () {
 
             assertWarFileToEqual(EXPECTED_FILENAME);
         });
+
+        it('should call callback function when done successfully', function () {
+            var spy = sinon.spy();
+            maven.config(TEST_CONFIG);
+            maven.install(spy);
+
+            // fake successful exec
+            var execCallback = execSpy.args[0][1];
+            execCallback(null, 'stdout', null);
+
+            assert.ok(spy.calledOnce);
+            assert.equal(spy.args[0][1], 'stdout');
+        });
     });
 
     describe('deploy', function () {
@@ -222,6 +243,44 @@ describe('maven-deploy', function () {
                 });
                 maven.deploy('dummy-repo', true);
             });
+        });
+
+        it('should add correct repositoryId and url', function () {
+            const EXPECTED_ARGS = [
+                '-DrepositoryId='+DUMMY_REPO_RELEASE.id,
+                '-Durl='+DUMMY_REPO_RELEASE.url
+            ];
+            maven.config(TEST_CONFIG);
+            maven.deploy(DUMMY_REPO_RELEASE.id, false);
+
+            assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
+        });
+
+        it('should add file argument', function () {
+            const EXPECTED_ARGS = ['-Dfile=dist/test-pkg.war'];
+            maven.config(TEST_CONFIG);
+            maven.deploy(DUMMY_REPO_RELEASE.id, false);
+            assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
+        });
+
+        it('should add version argument', function () {
+            const EXPECTED_ARGS = ['-Dversion=1.0.0'];
+            maven.config(TEST_CONFIG);
+            maven.deploy(DUMMY_REPO_RELEASE.id, false);
+            assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
+        });
+
+        it('should call callback function when done successfully', function () {
+            var spy = sinon.spy();
+            maven.config(TEST_CONFIG);
+            maven.deploy(DUMMY_REPO_RELEASE.id, false, spy);
+
+            // fake successful exec
+            var execCallback = execSpy.args[0][1];
+            execCallback(null, 'stdout', null);
+
+            assert.ok(spy.calledOnce);
+            assert.equal(spy.args[0][1], 'stdout');
         });
     });
 
