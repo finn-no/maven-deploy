@@ -163,10 +163,9 @@ function package (isSnapshot, done) {
 
 function mvn (args, repoId, isSnapshot, file, done) {
     if (!file) { file = package(isSnapshot); }
-    var stats = fs.statSync(file);
-    if (!stats.isFile()) {
-        throw new Error('File does not exist: ' + file);
-    }
+
+    // check if file exists
+    fs.statSync(file);
 
     command('mvn -B ' + args.concat(mvnArgs(repoId, isSnapshot, file)).join(' '), done);
 }

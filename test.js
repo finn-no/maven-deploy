@@ -234,7 +234,7 @@ describe('maven-deploy', function () {
 
             assert.throws(function () {
                 maven.install(CUSTOM_FILE);
-            });
+            }, /ENOENT, no such file or directory/);
         });
 
         it('should call callback function when done successfully', function () {
