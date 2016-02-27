@@ -213,6 +213,30 @@ describe('maven-deploy', function () {
             assertWarFileToEqual(EXPECTED_FILENAME);
         });
 
+        it('should install file from arguments if specified', function () {
+            const CUSTOM_FILE = 'file-from-args.jar';
+            const EXPECTED_ARGS = ['-Dfile='+CUSTOM_FILE];
+
+            var zip = new JSZip();
+            zip.file('test.txt', 'test');
+            fs.writeFileSync(CUSTOM_FILE, zip.generate({type:'nodebuffer', compression:'DEFLATE'}));
+
+            maven.config(TEST_CONFIG);
+            maven.install(CUSTOM_FILE);
+
+            assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
+        });
+
+        it('should throw error if file from arguments does not exist', function () {
+            const CUSTOM_FILE = 'non-existing-file-from-args.jar';
+            const EXPECTED_ARGS = ['-Dfile='+CUSTOM_FILE];
+            maven.config(TEST_CONFIG);
+
+            assert.throws(function () {
+                maven.install(CUSTOM_FILE);
+            }, /ENOENT, no such file or directory/);
+        });
+
         it('should call callback function when done successfully', function () {
             var spy = sinon.spy();
             maven.config(TEST_CONFIG);
@@ -270,16 +294,47 @@ describe('maven-deploy', function () {
             assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
         });
 
+        it('should deploy file from arguments if specified', function () {
+            const CUSTOM_FILE = 'file-from-args.jar';
+            const EXPECTED_ARGS = [
+                '-Dfile='+CUSTOM_FILE,
+                '-Dversion='+TEST_PKG_JSON.version
+            ];
+
+            var zip = new JSZip();
+            zip.file('test.txt', 'test');
+            fs.writeFileSync(CUSTOM_FILE, zip.generate({type:'nodebuffer', compression:'DEFLATE'}));
+
+            maven.config(TEST_CONFIG);
+            maven.deploy(DUMMY_REPO_RELEASE, CUSTOM_FILE);
+            maven.deploy(DUMMY_REPO_RELEASE, CUSTOM_FILE, false);
+            maven.deploy(DUMMY_REPO_RELEASE, CUSTOM_FILE, false, sinon.spy());
+            maven.deploy(DUMMY_REPO_RELEASE, CUSTOM_FILE, sinon.spy());
+
+            assert.equal(execSpy.callCount, 4);
+
+            for (var i=0; i<4; i++) {
+                assertArgs(execSpy.args[i][0], EXPECTED_ARGS);
+            }
+        });
+
         it('should call callback function when done successfully', function () {
             var spy = sinon.spy();
+
             maven.config(TEST_CONFIG);
+            maven.deploy(DUMMY_REPO_RELEASE.id, spy);
             maven.deploy(DUMMY_REPO_RELEASE.id, false, spy);
+            maven.deploy(DUMMY_REPO_RELEASE.id, 'package.json', spy);
+            maven.deploy(DUMMY_REPO_RELEASE.id, 'package.json', false, spy);
 
-            // fake successful exec
-            var execCallback = execSpy.args[0][1];
-            execCallback(null, 'stdout', null);
+            assert.equal(execSpy.callCount, 4);
 
-            assert.ok(spy.calledOnce);
+            for (var i=0; i<4; i++) {
+                // fake successful exec
+                execSpy.args[i][1](null, 'stdout', null);
+            }
+
+            assert.equal(spy.callCount, 4);
             assert.equal(spy.args[0][1], 'stdout');
         });
     });
