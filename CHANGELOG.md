@@ -2,6 +2,11 @@
 
 ## Next major release
 * BREAKING CHANGE: Do not exit if `mvn` command fails. Pass error, stdout and stderr to callback instead.
+* Switch to async API
+
+## 1.4.0
+* Add optional file argument to pass an archive instead of generating one
+* Update dependencies
 
 ## 1.3.2
 * Fix undocumented breaking change in isbinaryfile (Issue #28)
