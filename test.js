@@ -29,7 +29,8 @@ const GROUP_ID = 'com.dummy',
     TEST_CONFIG = {
         groupId: GROUP_ID,
         repositories: [DUMMY_REPO_SNAPSHOT, DUMMY_REPO_RELEASE],
-        classifier: TEST_CLASSIFIER
+        classifier: TEST_CLASSIFIER,
+        generatePom: false
     },
     TEST_PKG_JSON = {
         name: 'test-pkg',
@@ -281,6 +282,13 @@ describe('maven-deploy', function () {
 
             assert.ok(spy.calledOnce);
             assert.equal(spy.args[0][1], 'stdout');
+        });
+
+        it('should not generate pom', function () {
+            const EXPECTED_ARGS = ['-DgeneratePom=false'];
+            maven.config(TEST_CONFIG);
+            maven.deploy(DUMMY_REPO_RELEASE.id, false);
+            assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
         });
     });
 
