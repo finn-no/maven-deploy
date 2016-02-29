@@ -193,7 +193,7 @@ var maven = {
         var conf = getConfig();
         //if (isSnapshot && typeof isSnapshot != 'boolean') { done = file, file = isSnapshot, isSnapshot = false; }
         if (file && typeof file != 'string') { done = isSnapshot, isSnapshot = file, file = undefined; }
-        if (isSnapshot && isSnapshot != 'boolean') { done = isSnapshot, isSnapshot = false; }
+        if (isSnapshot && typeof isSnapshot != 'boolean') { done = isSnapshot, isSnapshot = false; }
         //if (file && typeof file == 'function') { done = file, file = undefined; }
 
         validateRepos(conf);
