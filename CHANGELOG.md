@@ -4,6 +4,11 @@
 * BREAKING CHANGE: Do not exit if `mvn` command fails. Pass error, stdout and stderr to callback instead.
 * Switch to async API
 
+## 1.5.0-beta
+* Add [generatePom](https://maven.apache.org/plugins/maven-deploy-plugin/deploy-file-mojo.html#generatePom) config-option
+* Update some dev-dependencies and remove coveralls as runtime dependency
+* Fix some lint errors
+
 ## 1.4.1
 * Fix bug for deploy (Issue #31)
 
