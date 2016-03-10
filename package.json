@@ -25,7 +25,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "coveralls": "^2.11.6",
     "define-options": "^0.1.3",
     "fs-walk": "0.0.1",
     "isbinaryfile": "^3.0.0",
@@ -36,11 +35,11 @@
   "devDependencies": {
     "buffer-equal": "^1.0.0",
     "coveralls": "^2.11.8",
-    "finn-js-code-style": "4.3.0",
+    "finn-js-code-style": "^5.0.0",
     "istanbul": "^0.4.2",
     "mocha": "^2.4.5",
     "mocha-lcov-reporter": "^1.2.0",
-    "mock-fs": "^3.7.0",
+    "mock-fs": "^3.8.0",
     "proxyquire": "^1.7.4",
     "sinon": "^1.17.3"
   }
