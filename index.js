@@ -191,10 +191,8 @@ var maven = {
 
     deploy: function (repoId, file, isSnapshot, done) {
         var conf = getConfig();
-        //if (isSnapshot && typeof isSnapshot != 'boolean') { done = file, file = isSnapshot, isSnapshot = false; }
         if (file && typeof file != 'string') { done = isSnapshot, isSnapshot = file, file = undefined; }
-        if (isSnapshot && isSnapshot != 'boolean') { done = isSnapshot, isSnapshot = false; }
-        //if (file && typeof file == 'function') { done = file, file = undefined; }
+        if (isSnapshot && typeof isSnapshot != 'boolean') { done = isSnapshot, isSnapshot = false; }
 
         validateRepos(conf);
         if (conf.repositories.length === 0) {

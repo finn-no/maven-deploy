@@ -324,17 +324,18 @@ describe('maven-deploy', function () {
             maven.config(TEST_CONFIG);
             maven.deploy(DUMMY_REPO_RELEASE.id, spy);
             maven.deploy(DUMMY_REPO_RELEASE.id, false, spy);
+            maven.deploy(DUMMY_REPO_RELEASE.id, true, spy);
             maven.deploy(DUMMY_REPO_RELEASE.id, 'package.json', spy);
             maven.deploy(DUMMY_REPO_RELEASE.id, 'package.json', false, spy);
 
-            assert.equal(execSpy.callCount, 4);
+            assert.equal(execSpy.callCount, 5);
 
-            for (var i=0; i<4; i++) {
+            for (var i=0; i<5; i++) {
                 // fake successful exec
                 execSpy.args[i][1](null, 'stdout', null);
             }
 
-            assert.equal(spy.callCount, 4);
+            assert.equal(spy.callCount, 5);
             assert.equal(spy.args[0][1], 'stdout');
         });
     });
