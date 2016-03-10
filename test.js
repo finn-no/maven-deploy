@@ -230,7 +230,6 @@ describe('maven-deploy', function () {
 
         it('should throw error if file from arguments does not exist', function () {
             const CUSTOM_FILE = 'non-existing-file-from-args.jar';
-            const EXPECTED_ARGS = ['-Dfile='+CUSTOM_FILE];
             maven.config(TEST_CONFIG);
 
             assert.throws(function () {

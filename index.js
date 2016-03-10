@@ -188,14 +188,14 @@ var maven = {
     package: package,
 
     install: function (file, done) {
-        if (typeof file == 'function') { done = file, file = undefined; }
+        if (typeof file == 'function') { done = file; file = undefined; }
         mvn(['install:install-file'], null, true, file, done);
     },
 
     deploy: function (repoId, file, isSnapshot, done) {
         var conf = getConfig();
-        if (file && typeof file != 'string') { done = isSnapshot, isSnapshot = file, file = undefined; }
-        if (isSnapshot && typeof isSnapshot != 'boolean') { done = isSnapshot, isSnapshot = false; }
+        if (file && typeof file != 'string') { done = isSnapshot; isSnapshot = file; file = undefined; }
+        if (isSnapshot && typeof isSnapshot != 'boolean') { done = isSnapshot; isSnapshot = false; }
 
         validateRepos(conf);
         if (conf.repositories.length === 0) {
