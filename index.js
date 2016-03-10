@@ -16,7 +16,8 @@ const DEFAULT_CONFIG = {
     finalName: '{name}',
     type: 'war',
     fileEncoding: 'utf-8',
-    version: '{version}'
+    version: '{version}',
+    generatePom: true
 };
 
 validateConfig = defineOpts({
@@ -27,7 +28,8 @@ validateConfig = defineOpts({
     finalName     : '?|string - the final name of the file created when the built project is packaged. default "' +
                     DEFAULT_CONFIG.finalName + '"',
     type          : '?|string - "jar" or "war". default "' + DEFAULT_CONFIG.type + '".',
-    fileEncoding  : '?|string - valid file encoding. default "' + DEFAULT_CONFIG.fileEncoding + '"'
+    fileEncoding  : '?|string - valid file encoding. default "' + DEFAULT_CONFIG.fileEncoding + '"',
+    generatePom   : '?|boolean - "true" or "false". default "' + DEFAULT_CONFIG.generatePom + '".'
 });
 
 validateRepos = defineOpts({
@@ -78,7 +80,8 @@ function mvnArgs (repoId, isSnapshot, file) {
         groupId      : conf.groupId,
         artifactId   : conf.artifactId,
         classifier   : conf.classifier,
-        version      : conf.version
+        version      : conf.version,
+        generatePom  : conf.generatePom
     };
 
     if (repoId) {
