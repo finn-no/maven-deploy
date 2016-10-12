@@ -35,6 +35,13 @@ const GROUP_ID = 'com.dummy',
     TEST_PKG_JSON = {
         name: 'test-pkg',
         version: '1.0.0'
+    },
+    TEST_CONFIG_WITH_POM = {
+        groupId: GROUP_ID,
+        repositories: [DUMMY_REPO_SNAPSHOT, DUMMY_REPO_RELEASE],
+        classifier: TEST_CLASSIFIER,
+        generatePom: false,
+        pomFile: 'existing-pom.xml'
     };
 
 var childProcessMock;
@@ -174,6 +181,23 @@ describe('maven-deploy', function () {
                 '-Dclassifier=' + TEST_CLASSIFIER
             ];
             maven.config(TEST_CONFIG);
+            maven.install();
+
+            assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
+        });
+
+        it('should pass pomFile to "mvn" when given', function () {
+            const EXPECTED_ARGS = [
+                '-B',
+                'install:install-file',
+                '-Dpackaging=war',
+                '-Dfile=dist' + path.sep + TEST_PKG_JSON.name + '.war',
+                '-DgroupId=' + GROUP_ID,
+                '-DartifactId=' + TEST_PKG_JSON.name,
+                '-Dclassifier=' + TEST_CLASSIFIER,
+                '-DpomFile=' + TEST_CONFIG_WITH_POM.pomFile
+            ];
+            maven.config(TEST_CONFIG_WITH_POM);
             maven.install();
 
             assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
