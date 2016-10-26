@@ -40,7 +40,7 @@ const GROUP_ID = 'com.dummy',
 var childProcessMock;
 var execSpy;
 
-function createFakeFS () {
+function createFakeFS() {
     var fakeFS = fsMock.fs({
         'package.json': JSON.stringify(TEST_PKG_JSON),
         'dist': {
@@ -54,43 +54,47 @@ function createFakeFS () {
     return fakeFS;
 }
 
-function npmVersion (next) {
+function npmVersion(next) {
     var fileName = 'package.json';
-    var pkg = JSON.parse(fs.readFileSync(fileName), {encoding: 'utf-8'});
+    var pkg = JSON.parse(fs.readFileSync(fileName), {
+        encoding: 'utf-8'
+    });
     pkg.version = next;
-    fs.writeFileSync(fileName, JSON.stringify(pkg), {encoding: 'utf-8'});
+    fs.writeFileSync(fileName, JSON.stringify(pkg), {
+        encoding: 'utf-8'
+    });
 }
 
-function warFileInDist () {
+function warFileInDist() {
     return fs.readdirSync('./dist/').filter(function (fileName) {
         return /\.war$/.test(fileName);
     })[0];
 }
 
-function warFileInDistAsZip () {
+function warFileInDistAsZip() {
     var pathToWarFile = warFileInDist();
     var context = fs.readFileSync('./dist/' + pathToWarFile);
     return new JSZip(context);
 }
 
-function assertWarFileToEqual (expectedName) {
+function assertWarFileToEqual(expectedName) {
     var warFile = warFileInDist();
     assert.ok(warFile);
     assert.equal(warFile, expectedName);
 }
 
-function arrayContains (arr, value) {
+function arrayContains(arr, value) {
     return arr.indexOf(value) !== -1;
 }
 
-function assertArgs (cmd, expectedArgs) {
+function assertArgs(cmd, expectedArgs) {
     var actualArgs = cmd.split(/\s+/);
     expectedArgs.forEach(function (expectedArg) {
         assert.ok(arrayContains(actualArgs, expectedArg), expectedArg + ' should be part of the command: ' + cmd);
     });
 }
 
-function assertNotArgs (cmd, unexpectedArgs) {
+function assertNotArgs(cmd, unexpectedArgs) {
     var actualArgs = cmd.split(/\s+/);
     unexpectedArgs.forEach(function (expectedArg) {
         assert.ok(!arrayContains(actualArgs, expectedArg), expectedArg + ' should not be part of the command: ' + cmd);
@@ -115,8 +119,12 @@ describe('maven-deploy', function () {
         maven = proxyquire('./index.js', {
             'child_process': childProcessMock,
             'fs': fs,
-            'fs-walk': proxyquire('fs-walk', {'fs': fs}),
-            'isbinaryfile': proxyquire('isbinaryfile', {'fs': fs})
+            'fs-walk': proxyquire('fs-walk', {
+                'fs': fs
+            }),
+            'isbinaryfile': proxyquire('isbinaryfile', {
+                'fs': fs
+            })
         });
     });
 
@@ -146,7 +154,9 @@ describe('maven-deploy', function () {
         it('should have a fresh version number if the package version has changed after config(...)', function () {
             const EXPECTED_VERSION = '1.2.3';
 
-            maven.config( extend({finalName: '{name}-{version}'}, TEST_CONFIG) );
+            maven.config(extend({
+                finalName: '{name}-{version}'
+            }, TEST_CONFIG));
             npmVersion(EXPECTED_VERSION);
             maven.package();
 
@@ -216,11 +226,14 @@ describe('maven-deploy', function () {
 
         it('should install file from arguments if specified', function () {
             const CUSTOM_FILE = 'file-from-args.jar';
-            const EXPECTED_ARGS = ['-Dfile='+CUSTOM_FILE];
+            const EXPECTED_ARGS = ['-Dfile=' + CUSTOM_FILE];
 
             var zip = new JSZip();
             zip.file('test.txt', 'test');
-            fs.writeFileSync(CUSTOM_FILE, zip.generate({type:'nodebuffer', compression:'DEFLATE'}));
+            fs.writeFileSync(CUSTOM_FILE, zip.generate({
+                type: 'nodebuffer',
+                compression: 'DEFLATE'
+            }));
 
             maven.config(TEST_CONFIG);
             maven.install(CUSTOM_FILE);
@@ -271,8 +284,8 @@ describe('maven-deploy', function () {
 
         it('should add correct repositoryId and url', function () {
             const EXPECTED_ARGS = [
-                '-DrepositoryId='+DUMMY_REPO_RELEASE.id,
-                '-Durl='+DUMMY_REPO_RELEASE.url
+                '-DrepositoryId=' + DUMMY_REPO_RELEASE.id,
+                '-Durl=' + DUMMY_REPO_RELEASE.url
             ];
             maven.config(TEST_CONFIG);
             maven.deploy(DUMMY_REPO_RELEASE.id, false);
@@ -294,16 +307,53 @@ describe('maven-deploy', function () {
             assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
         });
 
+        it('should append settings argument if settings are specified', function () {
+            const EXPECTED_ARGS = [
+                '-B',
+                'deploy:deploy-file',
+                '-Dpackaging=war',
+                '-Dfile=dist' + path.sep + TEST_PKG_JSON.name + '.war',
+                '-DgroupId=' + GROUP_ID,
+                '-DartifactId=' + TEST_PKG_JSON.name,
+                '-Dclassifier=' + TEST_CLASSIFIER,
+                '-sfolder/test-settings.xml'
+            ];
+            TEST_CONFIG.settings = 'folder/test-settings.xml';
+            maven.config(TEST_CONFIG);
+            maven.deploy();
+
+            assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
+        });
+
+        it('should not append settings argument if settings are not specified', function () {
+            const EXPECTED_ARGS = [
+                '-B',
+                'deploy:deploy-file',
+                '-Dpackaging=war',
+                '-Dfile=dist' + path.sep + TEST_PKG_JSON.name + '.war',
+                '-DgroupId=' + GROUP_ID,
+                '-DartifactId=' + TEST_PKG_JSON.name,
+                '-Dclassifier=' + TEST_CLASSIFIER
+            ];
+            maven.config(TEST_CONFIG);
+            maven.deploy();
+
+            assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
+        });
+
         it('should deploy file from arguments if specified', function () {
             const CUSTOM_FILE = 'file-from-args.jar';
             const EXPECTED_ARGS = [
-                '-Dfile='+CUSTOM_FILE,
-                '-Dversion='+TEST_PKG_JSON.version
+                '-Dfile=' + CUSTOM_FILE,
+                '-Dversion=' + TEST_PKG_JSON.version
             ];
 
             var zip = new JSZip();
             zip.file('test.txt', 'test');
-            fs.writeFileSync(CUSTOM_FILE, zip.generate({type:'nodebuffer', compression:'DEFLATE'}));
+            fs.writeFileSync(CUSTOM_FILE, zip.generate({
+                type: 'nodebuffer',
+                compression: 'DEFLATE'
+            }));
 
             maven.config(TEST_CONFIG);
             maven.deploy(DUMMY_REPO_RELEASE, CUSTOM_FILE);
@@ -313,7 +363,7 @@ describe('maven-deploy', function () {
 
             assert.equal(execSpy.callCount, 4);
 
-            for (var i=0; i<4; i++) {
+            for (var i = 0; i < 4; i++) {
                 assertArgs(execSpy.args[i][0], EXPECTED_ARGS);
             }
         });
@@ -330,7 +380,7 @@ describe('maven-deploy', function () {
 
             assert.equal(execSpy.callCount, 5);
 
-            for (var i=0; i<5; i++) {
+            for (var i = 0; i < 5; i++) {
                 // fake successful exec
                 execSpy.args[i][1](null, 'stdout', null);
             }
@@ -371,7 +421,7 @@ describe('maven-deploy', function () {
             var zip = warFileInDistAsZip();
             var image = zip.file('px.png');
             assert.ok(image, 'archive should contain px.png image');
-            var imageEqualOriginal = bufferEqual(new Buffer( new Uint8Array(image.asArrayBuffer()) ), BINARY_FILE);
+            var imageEqualOriginal = bufferEqual(new Buffer(new Uint8Array(image.asArrayBuffer())), BINARY_FILE);
             assert.ok(imageEqualOriginal, 'image data equals the original');
         });
     });
