@@ -29,7 +29,8 @@ validateConfig = defineOpts({
                     DEFAULT_CONFIG.finalName + '"',
     type          : '?|string - "jar" or "war". default "' + DEFAULT_CONFIG.type + '".',
     fileEncoding  : '?|string - valid file encoding. default "' + DEFAULT_CONFIG.fileEncoding + '"',
-    generatePom   : '?|boolean - "true" or "false". default "' + DEFAULT_CONFIG.generatePom + '".'
+    generatePom   : '?|boolean - "true" or "false". default "' + DEFAULT_CONFIG.generatePom + '".',
+    pomFile       : '?|string - filename of an existing pom.xml to use, should be used with generatePom set to "false".'
 });
 
 validateRepos = defineOpts({
@@ -81,7 +82,8 @@ function mvnArgs (repoId, isSnapshot, file) {
         artifactId   : conf.artifactId,
         classifier   : conf.classifier,
         version      : conf.version,
-        generatePom  : conf.generatePom
+        generatePom  : conf.generatePom,
+        pomFile      : conf.pomFile
     };
 
     if (repoId) {
