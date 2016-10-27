@@ -20,7 +20,8 @@ package is put there before packaging. The default is `dist/`. The package file 
         "buildDir"     : "dist",           // project build directory.
         "finalName"    : "{name}",         // the final name of the file created when the built project is packaged.
         "type"         : "war",            // type of package. "war" or "jar" supported.
-        "fileEncoding" : "utf-8"           // file encoding when traversing the file system, default is UTF-8
+        "fileEncoding" : "utf-8",          // file encoding when traversing the file system, default is UTF-8
+        "settings"     : "settings.xml"    // override mvc settings file. ignore this field to use default 
         "repositories" : [                 // array of repositories, each with id and url to a Maven repository.
           {
             "id": "example-internal-snapshot",
