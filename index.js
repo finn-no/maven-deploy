@@ -96,11 +96,17 @@ function mvnArgs (repoId, isSnapshot, file) {
         }
     }
 
-    return Object.keys(args).filter(function (key) {
+    var formattedArgs = Object.keys(args).filter(function (key) {
         return typeof args[key] !== 'undefined';
     }).reduce(function (arr, key) {
         return arr.concat('-D' + key + '=' + args[key]);
     }, []);
+
+    if (conf.settings) {
+        formattedArgs.push('-s' + conf.settings);
+    }
+    
+    return formattedArgs;
 }
 
 function check (cmd, err, stdout, stderr) {
