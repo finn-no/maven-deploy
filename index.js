@@ -17,7 +17,8 @@ const DEFAULT_CONFIG = {
     type: 'war',
     fileEncoding: 'utf-8',
     version: '{version}',
-    generatePom: true
+    generatePom: true,
+    settings: undefined
 };
 
 validateConfig = defineOpts({
@@ -29,7 +30,8 @@ validateConfig = defineOpts({
                     DEFAULT_CONFIG.finalName + '"',
     type          : '?|string - "jar" or "war". default "' + DEFAULT_CONFIG.type + '".',
     fileEncoding  : '?|string - valid file encoding. default "' + DEFAULT_CONFIG.fileEncoding + '"',
-    generatePom   : '?|boolean - "true" or "false". default "' + DEFAULT_CONFIG.generatePom + '".'
+    generatePom   : '?|boolean - "true" or "false". default "' + DEFAULT_CONFIG.generatePom + '".',
+    settings      : '?|string - location of user defined settings. default "' + DEFAULT_CONFIG.settings + '".'
 });
 
 validateRepos = defineOpts({
