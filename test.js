@@ -305,7 +305,7 @@ describe('maven-deploy', function () {
         });
 
         it('should add file argument', function () {
-            const EXPECTED_ARGS = ['-Dfile=dist/test-pkg.war'];
+            const EXPECTED_ARGS = ['-Dfile=dist' + path.sep + 'test-pkg.war'];
             maven.config(TEST_CONFIG);
             maven.deploy(DUMMY_REPO_RELEASE.id, false);
             assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
