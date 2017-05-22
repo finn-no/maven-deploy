@@ -32,6 +32,13 @@ const GROUP_ID = 'com.dummy',
         classifier: TEST_CLASSIFIER,
         generatePom: false
     },
+    TEST_CONFIG_WITH_SPACES = {
+        groupId: GROUP_ID,
+        repositories: [DUMMY_REPO_SNAPSHOT, DUMMY_REPO_RELEASE],
+        classifier: TEST_CLASSIFIER,
+        generatePom: false,
+        buildDir: 'dist with spaces' //build directory has spaces in it
+    },
     TEST_PKG_JSON = {
         name: 'test-pkg',
         version: '1.0.0'
@@ -56,7 +63,16 @@ function createFakeFS () {
             },
             'README.md': '## README\nlorum ipsum',
             'px.png': BINARY_FILE
-        }
+        },
+
+        //a directory with spaces in the path
+        'dist with spaces': {
+            'js': {
+                'index.js': 'console.log("test")',
+            },
+            'README.md': '## README\nlorum ipsum',
+            'px.png': BINARY_FILE
+        },
     });
     return fakeFS;
 }
@@ -91,7 +107,7 @@ function arrayContains (arr, value) {
 }
 
 function assertArgs (cmd, expectedArgs) {
-    var actualArgs = cmd.split(/\s+/);
+    var actualArgs = cmd.split(/([^"\s]*".*?"|[^"\s]+)+(?=\s*|\s*$)/g); //split based on spaces that are not wrapped in quotes
     expectedArgs.forEach(function (expectedArg) {
         assert.ok(arrayContains(actualArgs, expectedArg), expectedArg + ' should be part of the command: ' + cmd);
     });
@@ -174,11 +190,11 @@ describe('maven-deploy', function () {
             const EXPECTED_ARGS = [
                 '-B',
                 'install:install-file',
-                '-Dpackaging=war',
-                '-Dfile=dist' + path.sep + TEST_PKG_JSON.name + '.war',
-                '-DgroupId=' + GROUP_ID,
-                '-DartifactId=' + TEST_PKG_JSON.name,
-                '-Dclassifier=' + TEST_CLASSIFIER
+                '"-Dpackaging=war"',
+                '"-Dfile=dist' + path.sep + TEST_PKG_JSON.name + '.war"',
+                '"-DgroupId=' + GROUP_ID + '"',
+                '"-DartifactId=' + TEST_PKG_JSON.name + '"',
+                '"-Dclassifier=' + TEST_CLASSIFIER + '"'
             ];
             maven.config(TEST_CONFIG);
             maven.install();
@@ -190,12 +206,12 @@ describe('maven-deploy', function () {
             const EXPECTED_ARGS = [
                 '-B',
                 'install:install-file',
-                '-Dpackaging=war',
-                '-Dfile=dist' + path.sep + TEST_PKG_JSON.name + '.war',
-                '-DgroupId=' + GROUP_ID,
-                '-DartifactId=' + TEST_PKG_JSON.name,
-                '-Dclassifier=' + TEST_CLASSIFIER,
-                '-DpomFile=' + TEST_CONFIG_WITH_POM.pomFile
+                '"-Dpackaging=war"',
+                '"-Dfile=dist' + path.sep + TEST_PKG_JSON.name + '.war"',
+                '"-DgroupId=' + GROUP_ID + '"',
+                '"-DartifactId=' + TEST_PKG_JSON.name + '"',
+                '"-Dclassifier=' + TEST_CLASSIFIER + '"',
+                '"-DpomFile=' + TEST_CONFIG_WITH_POM.pomFile + '"'
             ];
             maven.config(TEST_CONFIG_WITH_POM);
             maven.install();
@@ -205,7 +221,7 @@ describe('maven-deploy', function () {
 
         it('should filter undefined arguments', function () {
             const UNEXPECTED_ARGS = [
-                '-Dclassifier=undefined'
+                '"-Dclassifier=undefined"'
             ];
             maven.config({
                 groupId: GROUP_ID,
@@ -217,7 +233,7 @@ describe('maven-deploy', function () {
         });
 
         it('should increase patch-version and add -SNAPSHOT to the version to follow Maven conventions', function () {
-            const EXPECTED_VERSION_ARG = '-Dversion=' + semver.inc(TEST_PKG_JSON.version, 'patch') + '-SNAPSHOT';
+            const EXPECTED_VERSION_ARG = '"-Dversion=' + semver.inc(TEST_PKG_JSON.version, 'patch') + '-SNAPSHOT"';
             maven.config(TEST_CONFIG);
             maven.install();
             var cmd = childProcessMock.exec.args[0][0].split(/\s+/);
@@ -240,7 +256,7 @@ describe('maven-deploy', function () {
 
         it('should install file from arguments if specified', function () {
             const CUSTOM_FILE = 'file-from-args.jar';
-            const EXPECTED_ARGS = ['-Dfile='+CUSTOM_FILE];
+            const EXPECTED_ARGS = ['"-Dfile='+CUSTOM_FILE + '"'];
 
             var zip = new JSZip();
             zip.file('test.txt', 'test');
@@ -295,8 +311,8 @@ describe('maven-deploy', function () {
 
         it('should add correct repositoryId and url', function () {
             const EXPECTED_ARGS = [
-                '-DrepositoryId='+DUMMY_REPO_RELEASE.id,
-                '-Durl='+DUMMY_REPO_RELEASE.url
+                '"-DrepositoryId='+DUMMY_REPO_RELEASE.id + '"',
+                '"-Durl='+DUMMY_REPO_RELEASE.url + '"'
             ];
             maven.config(TEST_CONFIG);
             maven.deploy(DUMMY_REPO_RELEASE.id, false);
@@ -305,14 +321,14 @@ describe('maven-deploy', function () {
         });
 
         it('should add file argument', function () {
-            const EXPECTED_ARGS = ['-Dfile=dist' + path.sep + 'test-pkg.war'];
+            const EXPECTED_ARGS = ['"-Dfile=dist' + path.sep + 'test-pkg.war"'];
             maven.config(TEST_CONFIG);
             maven.deploy(DUMMY_REPO_RELEASE.id, false);
             assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
         });
 
         it('should add version argument', function () {
-            const EXPECTED_ARGS = ['-Dversion=1.0.0'];
+            const EXPECTED_ARGS = ['"-Dversion=1.0.0"'];
             maven.config(TEST_CONFIG);
             maven.deploy(DUMMY_REPO_RELEASE.id, false);
             assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
@@ -321,8 +337,8 @@ describe('maven-deploy', function () {
         it('should deploy file from arguments if specified', function () {
             const CUSTOM_FILE = 'file-from-args.jar';
             const EXPECTED_ARGS = [
-                '-Dfile='+CUSTOM_FILE,
-                '-Dversion='+TEST_PKG_JSON.version
+                '"-Dfile='+CUSTOM_FILE + '"',
+                '"-Dversion='+TEST_PKG_JSON.version + '"'
             ];
 
             var zip = new JSZip();
@@ -364,11 +380,19 @@ describe('maven-deploy', function () {
         });
 
         it('should not generate pom', function () {
-            const EXPECTED_ARGS = ['-DgeneratePom=false'];
+            const EXPECTED_ARGS = ['"-DgeneratePom=false"'];
             maven.config(TEST_CONFIG);
             maven.deploy(DUMMY_REPO_RELEASE.id, false);
             assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
         });
+
+        it('should support spaces in file paths', function () {
+            const EXPECTED_ARGS = ['"-Dfile=dist with spaces' + path.sep + 'test-pkg.war"'];
+            maven.config(TEST_CONFIG_WITH_SPACES);
+            maven.deploy(DUMMY_REPO_RELEASE.id, false);
+            assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
+        });
+
     });
 
     describe('archive', function () {
