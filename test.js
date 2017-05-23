@@ -142,6 +142,56 @@ describe('maven-deploy', function () {
         });
     });
 
+    describe('versioning', function() {
+        it('semver release type passed in for releases', function () {
+            const EXPECTED_VERSION = '1.0.1';
+
+            maven.config( extend({finalName: '{name}-{version}', semver: 'patch'}, TEST_CONFIG) );
+            maven.package();
+
+            assertWarFileToEqual(TEST_PKG_JSON.name + '-' + EXPECTED_VERSION + '.war');
+        });
+
+        it('semver release type passed in for snapshots', function () {
+            const EXPECTED_VERSION = '1.1.0-SNAPSHOT';
+
+            maven.config( extend({finalName: '{name}-{version}', semver: 'minor'}, TEST_CONFIG) );
+            maven.package(true);
+
+            assertWarFileToEqual(TEST_PKG_JSON.name + '-' + EXPECTED_VERSION + '.war');
+        });
+
+        it('semver prerelease types for releases', function () {
+            const EXPECTED_VERSION = '1.0.1-beta-0';
+
+            maven.config( extend({finalName: '{name}-{version}', semver: ['prerelease', 'beta']}, TEST_CONFIG) );
+            maven.package();
+
+            assertWarFileToEqual(TEST_PKG_JSON.name + '-' + EXPECTED_VERSION + '.war');
+        });
+
+        it('semver prerelease build number qualifiers', function () {
+            const EXPECTED_VERSION = '1.2.3-6';
+
+            npmVersion('1.2.3-5');
+            maven.config( extend({finalName: '{name}-{version}', semver: ['prerelease']}, TEST_CONFIG) );
+            maven.package();
+
+            assertWarFileToEqual(TEST_PKG_JSON.name + '-' + EXPECTED_VERSION + '.war');
+        });
+
+        it('semver replacing prerelease build numbers with snapshots', function () {
+            const EXPECTED_VERSION = '1.2.3-alpha-SNAPSHOT';
+
+            npmVersion('1.2.3-alpha.5');
+            maven.config( extend({finalName: '{name}-{version}', semver: ['prerelease', 'alpha']}, TEST_CONFIG) );
+            maven.package(true);
+
+            assertWarFileToEqual(TEST_PKG_JSON.name + '-' + EXPECTED_VERSION + '.war');
+        });
+
+    });
+
     describe('package', function () {
         it('should create an archive based on defaults', function () {
             maven.config(TEST_CONFIG);

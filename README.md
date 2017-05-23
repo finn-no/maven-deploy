@@ -23,6 +23,9 @@ package is put there before packaging. The default is `dist/`. The package file 
         "fileEncoding" : "utf-8",          // file encoding when traversing the file system, default is UTF-8
         "generatePom"  : true,             // generate a POM based on the configuration
         "pomFile"      : "pom.xml",        // use this existing pom.xml instead of generating one (generatePom must be false)
+        "version"      : "{version}",      // sets the final version of the release
+        "semver"       : "minor",          // increases package.json's version. Values here can be any semver.inc release
+                                           // type strings, or an array of the release type and prerelease components.
         "repositories" : [                 // array of repositories, each with id and url to a Maven repository.
           {
             "id": "example-internal-snapshot",
@@ -80,6 +83,43 @@ Usage: `maven.deploy( repositoryId, [snapshot = false], [callback])`
     var maven = require('maven-deploy');
     maven.config(config);
     maven.deploy('example-internal-release', 'file.jar');
+
+## Versioning
+By default, an artifact's version is based on the version in package.json (ie. config.version==='{version}'). To control the version in package.json, you can specify the semver release type param and any prerelease params.
+All prerelease components in the resulting version will be turned into maven qualifiers and separated by '-' instead of '.'. For example 1.2.3-alpha.3 will be 1.2.3-alpha-3
+
+Note: semver is not configured by default for release artifacts.
+
+### Snapshots
+
+All snapshot builds will have the '-SNAPSHOT' qualifier appended to them.
+As well, if a version has prerelease components then the last build number will be dropped in place of the SNAPSHOT qualifier.
+
+Note: semver is set to 'patch' by default for snapshot artifacts.
+
+### Example: bumping the patch version
+
+    console.log(packageJson.version); //1.2.3
+    config.semver = 'patch';
+    maven.config(config);
+    maven.deploy('example-internal-release');
+    //artifact version will be 1.2.4
+
+### Example: bumping the release candidate version
+
+    console.log(packageJson.version); //1.2.3-alpha.3
+    config.semver = ['prerelease', 'alpha'];
+    maven.config(config);
+    maven.deploy('example-internal-release');
+    //artifact version will be 1.2.3-alpha-4
+
+### Example: replacing build numbers with SNAPSHOT
+
+    console.log(packageJson.version); //1.2.3-alpha.3
+    config.semver = ['prerelease', 'alpha'];
+    maven.config(config);
+    maven.deploy('example-internal-release', true);
+    //artifact version will be 1.2.3-alpha-SNAPSHOT
 
 ## Contributing
 
