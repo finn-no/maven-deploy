@@ -159,7 +159,13 @@ function getConfig (isSnapshot) {
         }
 
         //replace the '.' between prerelease components with '-' to be proper qualifiers
-        pkg.version = [semver.major(pkg.version), semver.minor(pkg.version), semver.patch(pkg.version)].join('.') + '-' + components.join('-');
+        if (components.length > 0) {
+            pkg.version = [semver.major(pkg.version), semver.minor(pkg.version), semver.patch(pkg.version)].join('.') + '-' + components.join('-');
+        }
+        else {
+            //should only get here if we popped off the last component, so we don't want to put an extra '-'
+            pkg.version = [semver.major(pkg.version), semver.minor(pkg.version), semver.patch(pkg.version)].join('.')
+        }
     }
 
     //pkg version should be modified above but still need to add snapshot when appropriate
