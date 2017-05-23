@@ -17,7 +17,8 @@ const DEFAULT_CONFIG = {
     type: 'war',
     fileEncoding: 'utf-8',
     version: '{version}',
-    generatePom: true
+    generatePom: true,
+    semver: null
 };
 
 validateConfig = defineOpts({
@@ -129,8 +130,41 @@ function getConfig (isSnapshot) {
 
     var pkg = readPackageJSON(configTmpl.fileEncoding);
 
+    if (!configTmpl.semver && isSnapshot) {
+        //for backwards compat inc 'patch' version when making snapshots
+        configTmpl.semver = 'patch';
+    }
+
+    if (configTmpl.semver) {
+        if (Array.isArray(configTmpl.semver)) {
+            //interpret semver config as params to semver.inc
+            pkg.version = semver.inc.apply(null, [pkg.version].concat(configTmpl.semver));
+        }
+        else if (semver.valid(configTmpl.semver)) {
+            //semver is a valid version to use
+            pkg.version = configTmpl.semver
+        }
+        else {
+            //interpret semver as the second option to semver.inc
+            pkg.version = semver.inc(pkg.version, configTmpl.semver);
+        }
+    }
+
+    //convert prerelease components into proper qualifiers
+    var components = semver.prerelease(pkg.version);
+    if (components) {
+        //check if we should drop the last build number component
+        if (isSnapshot && isFinite(components[components.length - 1])) {
+            components.pop();
+        }
+
+        //replace the '.' between prerelease components with '-' to be proper qualifiers
+        pkg.version = [semver.major(pkg.version), semver.minor(pkg.version), semver.patch(pkg.version)].join('.') + '-' + components.join('-');
+    }
+
+    //pkg version should be modified above but still need to add snapshot when appropriate
     if (isSnapshot) {
-        pkg.version = semver.inc(pkg.version, 'patch') + '-SNAPSHOT';
+        pkg.version += '-SNAPSHOT';
     }
 
     return filterConfig(configTmpl, pkg);
