@@ -7,6 +7,7 @@ var exec = require('child_process').exec;
 var defineOpts = require('define-options');
 var semver = require('semver');
 var isBinaryFile = require('isbinaryfile');
+var mavenDeployPackage = require('./package.json');
 
 var validateConfig, validateRepos, validateRepo, userConfig;
 
@@ -17,20 +18,22 @@ const DEFAULT_CONFIG = {
     type: 'war',
     fileEncoding: 'utf-8',
     version: '{version}',
-    generatePom: true
+    generatePom: true,
+    generateManifest: false
 };
 
 validateConfig = defineOpts({
-    groupId       : 'string   - the Maven group id.',
-    artifactId    : '?|string - the Maven artifact id. default "' + DEFAULT_CONFIG.artifactId + '".',
-    classifier    : '?|string - the Maven optional classifier.',
-    buildDir      : '?|string - build directory. default "' + DEFAULT_CONFIG.buildDir + '".',
-    finalName     : '?|string - the final name of the file created when the built project is packaged. default "' +
-                    DEFAULT_CONFIG.finalName + '"',
-    type          : '?|string - "jar" or "war". default "' + DEFAULT_CONFIG.type + '".',
-    fileEncoding  : '?|string - valid file encoding. default "' + DEFAULT_CONFIG.fileEncoding + '"',
-    generatePom   : '?|boolean - "true" or "false". default "' + DEFAULT_CONFIG.generatePom + '".',
-    pomFile       : '?|string - filename of an existing pom.xml to use, should be used with generatePom set to "false".'
+    groupId             : 'string   - the Maven group id.',
+    artifactId          : '?|string - the Maven artifact id. default "' + DEFAULT_CONFIG.artifactId + '".',
+    classifier          : '?|string - the Maven optional classifier.',
+    buildDir            : '?|string - build directory. default "' + DEFAULT_CONFIG.buildDir + '".',
+    finalName           : '?|string - the final name of the file created when the built project is packaged. default "' +
+                        DEFAULT_CONFIG.finalName + '"',
+    type                : '?|string - "jar" or "war". default "' + DEFAULT_CONFIG.type + '".',
+    fileEncoding        : '?|string - valid file encoding. default "' + DEFAULT_CONFIG.fileEncoding + '"',
+    generatePom         : '?|boolean - "true" or "false". default "' + DEFAULT_CONFIG.generatePom + '".',
+    pomFile             : '?|string - filename of an existing pom.xml to use, should be used with generatePom set to "false".',
+    generateManifest    : '?|boolean - if true generates a META-INF/MANIFEST.mf file. default ' + DEFAULT_CONFIG.generateManifest + '".'
 });
 
 validateRepos = defineOpts({
@@ -136,10 +139,22 @@ function getConfig (isSnapshot) {
     return filterConfig(configTmpl, pkg);
 }
 
+function getManifestContent(conf) {
+    var manifest = 'Manifest-Version: 1.0\n';
+    manifest += 'Implementation-Title: ' + conf.artifactId + '\n';
+    manifest += 'Implementation-Version: ' + conf.version + '\n';
+    manifest += 'Implementation-Vendor-Id: ' + conf.groupId + '\n';
+    manifest += 'Built-By: ' + process.env.USER + '\n';
+    manifest += 'Created-By: maven-deploy ' + mavenDeployPackage.version + '\n';
+    return manifest;
+}
+
 function package (isSnapshot, done) {
-    if (typeof isSnapshot == 'function') { done = isSnapshot; isSnapshot = false; }
+    if (typeof isSnapshot === 'function') { done = isSnapshot; isSnapshot = false; }
     var archive = new JSZip();
     var conf = getConfig(isSnapshot);
+
+
 
     walk.walkSync(conf.buildDir, function (base, file, stat) {
         if (stat.isDirectory() || file.indexOf(conf.finalName + '.' + conf.type) === 0) {
@@ -156,7 +171,14 @@ function package (isSnapshot, done) {
 
         archive.file(convertPathIntoUnixLike(path.relative(conf.buildDir, filePath)), data, {createFolders: true});
     });
-
+    if (conf.generateManifest){
+        var metaInfPath = path.join(conf.buildDir, 'META-INF');
+        if (!fs.existsSync(metaInfPath)) {
+            fs.mkdirSync(path.join(conf.buildDir, 'META-INF'));
+        }
+        var manifest = getManifestContent(conf);
+        archive.file('META-INF/MANIFEST.MF', manifest, {createFolders:true});
+    }
     var buffer = archive.generate({type:'nodebuffer', compression:'DEFLATE'});
     var arPath = archivePath(isSnapshot);
     console.log('archive path', arPath);
