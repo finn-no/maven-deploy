@@ -32,6 +32,13 @@ const GROUP_ID = 'com.dummy',
         classifier: TEST_CLASSIFIER,
         generatePom: false
     },
+    TEST_CONFIG_WITH_MANIFEST = {
+        groupId: GROUP_ID,
+        repositories: [DUMMY_REPO_SNAPSHOT, DUMMY_REPO_RELEASE],
+        classifier: TEST_CLASSIFIER,
+        generatePom: false,
+        generateManifest: true
+    },
     TEST_PKG_JSON = {
         name: 'test-pkg',
         version: '1.0.0'
@@ -84,6 +91,11 @@ function assertWarFileToEqual (expectedName) {
     var warFile = warFileInDist();
     assert.ok(warFile);
     assert.equal(warFile, expectedName);
+}
+
+function assertWarFileContainsManifest(){
+    var warFile = warFileInDistAsZip();
+    assert.ok(warFile.file('META-INF/MANIFEST.MF'));
 }
 
 function arrayContains (arr, value) {
@@ -158,6 +170,14 @@ describe('maven-deploy', function () {
             maven.package();
 
             assertWarFileToEqual(TEST_PKG_JSON.name + '-' + EXPECTED_VERSION + '.war');
+        });
+
+        it('should create a manifest file', function () {
+            maven.config(TEST_CONFIG_WITH_MANIFEST);
+            maven.package();
+            assertWarFileToEqual(TEST_PKG_JSON.name + '.war');
+            assertWarFileContainsManifest();
+
         });
     });
 
