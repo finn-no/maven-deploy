@@ -53,15 +53,21 @@ function readPackageJSON (encoding) {
 function filterConfig (configTmpl, pkg) {
     // create a config object from the config template
     // replace {key} with the key's value in package.json
+    // replace ${key} with eval(key)
     var obj = extend({}, configTmpl);
     Object.keys(obj).forEach(function (key) {
         var value = obj[key];
         if (typeof value != 'string') { return; }
 
-        obj[key] = value.replace(/{([^}]+)}/g, function (org, key) {
-            if (pkg[key] === undefined) { return org; }
-            return pkg[key];
-        });
+        obj[key] = value
+            .replace(/\${([^}]+)}/g, function(org, key) {
+                if (eval(key) === undefined) { return org; }
+                return eval(key);
+            })
+            .replace(/{([^}]+)}/g, function (org, key) {
+                if (pkg[key] === undefined) { return org; }
+                return pkg[key];
+            });
     });
 
     return obj;
