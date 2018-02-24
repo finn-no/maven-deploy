@@ -42,6 +42,13 @@ const GROUP_ID = 'com.dummy',
         classifier: TEST_CLASSIFIER,
         generatePom: false,
         pomFile: 'existing-pom.xml'
+    },
+    TEST_CONFIG_WITH_ENV_VARIABLE = {
+        groupId: GROUP_ID,
+        repositories: [DUMMY_REPO_SNAPSHOT, DUMMY_REPO_RELEASE],
+        classifier: TEST_CLASSIFIER,
+        generatePom: false,
+        'finalName': '{name}-{{env.NODE_ENV}}.{{package.version}}',   
     };
 
 var childProcessMock;
@@ -118,6 +125,7 @@ describe('maven-deploy', function () {
         execSpy = childProcessMock.exec;
 
         fs = createFakeFS();
+        process.env.NODE_ENV = 'test';
 
         maven = proxyquire('./index.js', {
             'child_process': childProcessMock,
@@ -139,6 +147,19 @@ describe('maven-deploy', function () {
                     repositories: [DUMMY_REPO_SNAPSHOT]
                 });
             });
+        });
+        it('should render correct config with {env} and {package} values', function () {
+            const EXPECTED_ARGS = [
+                '-Dfile=dist' + path.sep + TEST_PKG_JSON.name + '-' + 
+                process.env.NODE_ENV +
+                '.'+semver.inc(TEST_PKG_JSON.version,'patch')+
+                '-SNAPSHOT' + '.war',
+            ];
+            maven.config(TEST_CONFIG_WITH_ENV_VARIABLE);
+            maven.install();
+
+            assert.equal(process.env.NODE_ENV,'test');
+            assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
         });
     });
 

@@ -29,6 +29,7 @@
     "fs-walk": "0.0.1",
     "isbinaryfile": "^3.0.0",
     "jszip": "^2.5.0",
+    "mustache": "^2.3.0",
     "semver": "^5.1.0",
     "util-extend": "^1.0.3"
   },
