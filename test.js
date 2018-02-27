@@ -48,7 +48,7 @@ const GROUP_ID = 'com.dummy',
         repositories: [DUMMY_REPO_SNAPSHOT, DUMMY_REPO_RELEASE],
         classifier: TEST_CLASSIFIER,
         generatePom: false,
-        'finalName': '{name}-{{env.NODE_ENV}}.{{package.version}}',   
+        finalName: '{name}-{{env.NODE_ENV}}.{{package.version}}',   
     };
 
 var childProcessMock;
@@ -150,15 +150,15 @@ describe('maven-deploy', function () {
         });
         it('should render correct config with {env} and {package} values', function () {
             const EXPECTED_ARGS = [
-                '-Dfile=dist' + path.sep + TEST_PKG_JSON.name + '-' + 
+                '-Dfile=dist' + path.sep + TEST_PKG_JSON.name + '-' +
                 process.env.NODE_ENV +
-                '.'+semver.inc(TEST_PKG_JSON.version,'patch')+
+                '.' + semver.inc(TEST_PKG_JSON.version, 'patch') +
                 '-SNAPSHOT' + '.war',
             ];
             maven.config(TEST_CONFIG_WITH_ENV_VARIABLE);
             maven.install();
 
-            assert.equal(process.env.NODE_ENV,'test');
+            assert.equal(process.env.NODE_ENV, 'test');
             assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
         });
     });
