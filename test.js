@@ -318,6 +318,40 @@ describe('maven-deploy', function () {
             assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
         });
 
+        it('should append settings argument if settings are specified', function () {
+            const EXPECTED_ARGS = [
+                '-B',
+                'deploy:deploy-file',
+                '-Dpackaging=war',
+                '-Dfile=dist' + path.sep + TEST_PKG_JSON.name + '.war',
+                '-DgroupId=' + GROUP_ID,
+                '-DartifactId=' + TEST_PKG_JSON.name,
+                '-Dclassifier=' + TEST_CLASSIFIER,
+                '-sfolder/test-settings.xml'
+            ];
+            TEST_CONFIG.settings = 'folder/test-settings.xml';
+            maven.config(TEST_CONFIG);
+            maven.deploy();
+
+            assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
+        });
+
+        it('should not append settings argument if settings are not specified', function () {
+            const EXPECTED_ARGS = [
+                '-B',
+                'deploy:deploy-file',
+                '-Dpackaging=war',
+                '-Dfile=dist' + path.sep + TEST_PKG_JSON.name + '.war',
+                '-DgroupId=' + GROUP_ID,
+                '-DartifactId=' + TEST_PKG_JSON.name,
+                '-Dclassifier=' + TEST_CLASSIFIER
+            ];
+            maven.config(TEST_CONFIG);
+            maven.deploy();
+
+            assertArgs(execSpy.args[0][0], EXPECTED_ARGS);
+        });
+
         it('should deploy file from arguments if specified', function () {
             const CUSTOM_FILE = 'file-from-args.jar';
             const EXPECTED_ARGS = [

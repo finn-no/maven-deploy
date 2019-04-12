@@ -17,7 +17,8 @@ const DEFAULT_CONFIG = {
     type: 'war',
     fileEncoding: 'utf-8',
     version: '{version}',
-    generatePom: true
+    generatePom: true,
+    settings: undefined
 };
 
 validateConfig = defineOpts({
@@ -30,7 +31,8 @@ validateConfig = defineOpts({
     type          : '?|string - "jar" or "war". default "' + DEFAULT_CONFIG.type + '".',
     fileEncoding  : '?|string - valid file encoding. default "' + DEFAULT_CONFIG.fileEncoding + '"',
     generatePom   : '?|boolean - "true" or "false". default "' + DEFAULT_CONFIG.generatePom + '".',
-    pomFile       : '?|string - filename of an existing pom.xml to use, should be used with generatePom set to "false".'
+    pomFile       : '?|string - filename of an existing pom.xml to use, should be used with generatePom set to "false".',
+    settings      : '?|string - location of user defined settings. default "' + DEFAULT_CONFIG.settings + '".'
 });
 
 validateRepos = defineOpts({
@@ -96,11 +98,17 @@ function mvnArgs (repoId, isSnapshot, file) {
         }
     }
 
-    return Object.keys(args).filter(function (key) {
+    var formattedArgs = Object.keys(args).filter(function (key) {
         return typeof args[key] !== 'undefined';
     }).reduce(function (arr, key) {
         return arr.concat('-D' + key + '=' + args[key]);
     }, []);
+
+    if (conf.settings) {
+        formattedArgs.push('-s' + conf.settings);
+    }
+
+    return formattedArgs;
 }
 
 function check (cmd, err, stdout, stderr) {

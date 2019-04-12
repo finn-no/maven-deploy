@@ -23,6 +23,7 @@ package is put there before packaging. The default is `dist/`. The package file 
         "fileEncoding" : "utf-8",          // file encoding when traversing the file system, default is UTF-8
         "generatePom"  : true,             // generate a POM based on the configuration
         "pomFile"      : "pom.xml",        // use this existing pom.xml instead of generating one (generatePom must be false)
+        "settings"     : "settings.xml",    // override mvn settings file. ignore this field to use default
         "repositories" : [                 // array of repositories, each with id and url to a Maven repository.
           {
             "id": "example-internal-snapshot",
