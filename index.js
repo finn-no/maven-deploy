@@ -7,6 +7,7 @@ var exec = require('child_process').exec;
 var defineOpts = require('define-options');
 var semver = require('semver');
 var isBinaryFile = require('isbinaryfile');
+var Mustache = require('mustache');
 
 var validateConfig, validateRepos, validateRepo, userConfig;
 
@@ -55,15 +56,21 @@ function readPackageJSON (encoding) {
 function filterConfig (configTmpl, pkg) {
     // create a config object from the config template
     // replace {key} with the key's value in package.json
+    // replace ${key} with eval(key)
     var obj = extend({}, configTmpl);
+    var replacibleKeys = {
+        env: process.env,
+        package: pkg
+    };
     Object.keys(obj).forEach(function (key) {
         var value = obj[key];
         if (typeof value != 'string') { return; }
 
-        obj[key] = value.replace(/{([^}]+)}/g, function (org, key) {
-            if (pkg[key] === undefined) { return org; }
-            return pkg[key];
-        });
+        obj[key] = Mustache.render(value, replacibleKeys)
+            .replace(/{([^}]+)}/g, function (org, key) {
+                if (pkg[key] === undefined) { return org; }
+                return pkg[key];
+            });
     });
 
     return obj;
