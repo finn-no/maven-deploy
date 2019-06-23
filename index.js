@@ -101,7 +101,7 @@ function mvnArgs (repoId, isSnapshot, file) {
     var formattedArgs = Object.keys(args).filter(function (key) {
         return typeof args[key] !== 'undefined';
     }).reduce(function (arr, key) {
-        return arr.concat('-D' + key + '=' + args[key]);
+        return arr.concat('"-D' + key + '=' + args[key] + '"');
     }, []);
 
     if (conf.settings) {
